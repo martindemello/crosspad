@@ -1,3 +1,5 @@
+exception PuzzleFormatError of string
+
 (* Datatypes *)
 
 type puzzle_type = [`Normal | `Diagramless]
@@ -6,19 +8,21 @@ type solution_state = [`Locked | `Unlocked]
 
 type grid_markup = [`Default | `PreviouslyIncorrect | `Incorrect | `Revealed | `Circled]
 
-type extension_type = [ `RTBL of (int * string) list
-                      | `GRBS
-                      | `GEXT
-                      | `LTIM of (int * int)
-                      ]
+type parsed_extension = [ `RTBL of (int * string) list
+                        | `GRBS of string
+                        | `GEXT of string
+                        | `LTIM of (int * int)
+                        ]
 
+(* extension read in from binary *)
 type extension = {
   section: string;
   length: int;
   data: string;
-  checksum: int
+  checksum: int;
 }
 
+(* puzzle read in from binary *)
 type puzzle = {
   preamble: string;
   postscript: string;
@@ -62,5 +66,3 @@ let new_puzzle = {
   solution_state = `Unlocked;
   helpers = [];
 }
-
-exception PuzzleFormatError of string

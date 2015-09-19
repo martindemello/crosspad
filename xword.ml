@@ -44,7 +44,7 @@ let start_down xw x y =
 let iteri xw f =
   for y = 0 to xw.rows - 1 do
     for x = 0 to xw.cols - 1 do
-      f x y (get_cell xw x y)
+      f (x + y * xw.cols) x y (get_cell xw x y)
     done
   done
 
@@ -73,7 +73,7 @@ let renumber ?(on_ac=ignore) ?(on_dn=ignore) xw =
 let encode_rebus xw =
   let m = ref (String.Map.empty) in
   let k = ref 0 in
-  iteri xw (fun x y c ->
+  iteri xw (fun i x y c ->
       match c with
       | Rebus r -> begin
           match Map.find !m r.solution with

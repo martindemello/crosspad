@@ -35,7 +35,7 @@ let read_extensions (s : string_io) =
         length: 16 : littleendian;
         checksum: 16 : littleendian
     } -> { data = ""; section; length; checksum }
-  in  
+  in
 
   let read_extension s =
     let header = s#read 8 in

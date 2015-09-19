@@ -58,7 +58,7 @@ let letter_of_cell = function
   | Black -> ""
   | Empty -> ""
   | Letter c -> c
-  | Rebus (s, c) -> c
+  | Rebus r -> r.display_char
 
 let bg_of_cell cell is_cursor =
  match cell, is_cursor with

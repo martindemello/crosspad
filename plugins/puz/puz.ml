@@ -1,7 +1,6 @@
 open Core_kernel.Std
 open Printf
 open Types
-open Opal
 open Puz_types
 open Puz_utils
 
@@ -16,27 +15,46 @@ let fail_read ex =
   let msg = Printf.sprintf "Could not read extension %s" ex.section in
   raise (PuzzleFormatError msg)
 
-let process_extension ex =
-  print_endline ex.section;
+(* extension -> parsed_extension *)
+let parse_extension puz ex =
+  let n_cells = puz.width * puz.height in
+  let is_byte_grid s = (String.length s) = (n_cells + 1) in
   match ex.section with
   | "RTBL" -> begin
+      let unpack x = (x#symbol, x#word) in
       match Puz_match.match_rtbl ex.data with
       | None -> fail_read ex
-      | Some xs -> `RTBL (List.map xs (fun x -> (x#symbol, x#word)))
-
+      | Some xs -> ("RTBL", `RTBL (List.map xs unpack))
     end
-  | "GRBS" -> `GRBS
-  | "GEXT" -> `GEXT
+  | "GRBS" -> begin
+      match is_byte_grid ex.data with
+      | false -> fail_read ex
+      | true -> ("GRBS", `GRBS ex.data)
+    end
+  | "GEXT" -> begin
+      match is_byte_grid ex.data with
+      | false -> fail_read ex
+      | true -> ("GEXT", `GEXT ex.data)
+    end
   | "LTIM" -> begin
       match Puz_match.match_ltim ex.data with
       | None -> fail_read ex
-      | Some (x, y) -> `LTIM (x, y)
+      | Some (x, y) -> ("LTIM", `LTIM (x, y))
     end
   |_ -> fail_read ex
 
+(* parsed_extension -> extension *)
+let write_ltim (x, y) =
+  Printf.sprintf "%d,%d" x y
 
+let write_grbs s = s
 
-let load_puzzle data =
+let write_gext s = s
+
+let write_rtbl xs =
+  String.concat (List.map xs (fun (x, y) -> Printf.sprintf "%2d:%s;" x y))
+
+let read_puzzle data =
   (* Files may contain some data before the start of the puzzle.
      Use the magic string as a start marker and save the preamble for
      round-tripping *)
@@ -77,8 +95,7 @@ let unpack_clues xw puzzle =
   xw.clues.across <- List.rev !ac;
   xw.clues.down <- List.rev !dn
 
-let to_xw puzzle =
-  let xw = Xword.make puzzle.height puzzle.width in
+let unpack_solution xw puzzle =
   let s = puzzle.solution in
   for y = 0 to xw.rows - 1 do
     for x = 0 to xw.cols - 1 do
@@ -86,16 +103,38 @@ let to_xw puzzle =
       let cell = cell_of_char s.[ix] in
       Xword.set_cell xw x y cell
     done
-  done;
-  unpack_clues xw puzzle;
-  xw
+  done
 
+let unpack_extensions xw puzzle =
+  let ex = List.map puzzle.extensions ~f:(parse_extension puzzle) in
+  let get_ex = List.Assoc.find ex in
+  match get_ex "GRBS", get_ex "RTBL" with
+  | Some (`GRBS grbs), Some (`RTBL rtbl) ->
+    Xword.iteri xw (fun i x y c ->
+        let n = Char.to_int grbs.[i] in
+        if n > 0 then begin
+          let n = n - 1 in
+          let s = match List.Assoc.find rtbl n with
+            | Some str -> str
+            | None -> raise (PuzzleFormatError "Invalid rebus extension")
+          in
+          let display_char = String.sub s ~pos:0 ~len:1 in
+          let r = Rebus { symbol = n; solution = s; display_char } in
+          Xword.set_cell xw x y r
+        end
+      )
+  | _ -> () (* if we don't have both rtbl and grbs do nothing *)
+
+let to_xw puzzle =
+  let xw = Xword.make puzzle.height puzzle.width in
+  unpack_solution xw puzzle;
+  unpack_clues xw puzzle;
+  unpack_extensions xw puzzle;
+  xw
 
 let _ =
   let fname = "mini.puz" in
   let data = In_channel.read_all fname in
-  let puz = load_puzzle data in
+  let puz = read_puzzle data in
   let xw = to_xw puz in
-  (*Xword.inspect xw;*)
   ignore xw;
-  List.map puz.extensions process_extension;
