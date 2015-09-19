@@ -49,3 +49,12 @@ let read_extensions (s : string_io) =
     out := read_extension s :: !out
   done;
   List.rev !out
+
+(* Write out extensions *)
+let write_extension_header e =
+  let b = BITSTRING {
+    e.section : 4 * 8 : string;
+    e.length : 16 : littleendian;
+    e.checksum : 16 : littleendian
+  } in
+  Bitstring.string_of_bitstring b

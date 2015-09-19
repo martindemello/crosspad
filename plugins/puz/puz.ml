@@ -18,7 +18,9 @@ let fail_read ex =
 (* extension -> parsed_extension *)
 let parse_extension puz ex =
   let n_cells = puz.width * puz.height in
-  let is_byte_grid s = (String.length s) = (n_cells + 1) in
+  let last s = String.length s - 1 in
+  let is_byte_grid s = (last s = n_cells) && (s.[n_cells] = '\000') in
+  let drop_last s = String.sub s 0 (last s) in
   match ex.section with
   | "RTBL" -> begin
       let unpack x = (x#symbol, x#word) in
@@ -29,12 +31,12 @@ let parse_extension puz ex =
   | "GRBS" -> begin
       match is_byte_grid ex.data with
       | false -> fail_read ex
-      | true -> ("GRBS", `GRBS ex.data)
+      | true -> ("GRBS", `GRBS (drop_last ex.data))
     end
   | "GEXT" -> begin
       match is_byte_grid ex.data with
       | false -> fail_read ex
-      | true -> ("GEXT", `GEXT ex.data)
+      | true -> ("GEXT", `GEXT (drop_last ex.data))
     end
   | "LTIM" -> begin
       match Puz_match.match_ltim ex.data with
@@ -53,6 +55,26 @@ let write_gext s = s
 
 let write_rtbl xs =
   String.concat (List.map xs (fun (x, y) -> Printf.sprintf "%2d:%s;" x y))
+
+let data_of_extension = function
+  | `RTBL x -> write_rtbl x
+  | `GRBS x -> write_grbs x
+  | `GEXT x -> write_gext x
+  | `LTIM x -> write_ltim x
+
+let pack_extension (section, p) =
+  let data = data_of_extension p in
+  let length = String.length data in
+  let data = data ^ "\000" in
+  let checksum = checksum_of_string data in
+  { section; data; length; checksum }
+
+let write_extension p =
+  let ex = pack_extension p in
+  let h = Puz_binreader.write_extension_header ex in
+  h ^ ex.data
+
+
 
 let read_puzzle data =
   (* Files may contain some data before the start of the puzzle.
