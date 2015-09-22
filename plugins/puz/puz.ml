@@ -71,7 +71,7 @@ let pack_extension (section, p) =
 
 let write_extension p =
   let ex = pack_extension p in
-  let h = Puz_binreader.write_extension_header ex in
+  let h = Puz_bin.write_extension_header ex in
   h ^ ex.data
 
 
@@ -86,7 +86,7 @@ let read_puzzle data =
   in
   let s = new string_io data in
   let header = s#read (start + 0x34) in
-  let puz = Puz_binreader.read_header header start in
+  let puz = Puz_bin.read_header header start in
   let solution = s#read (puz.width * puz.height) in
   let fill = s#read (puz.width * puz.height) in
   let title = s#read_string in
@@ -94,7 +94,7 @@ let read_puzzle data =
   let copyright = s#read_string in
   let clues = Array.init puz.n_clues (fun i -> s#read_string) in
   let notes = s#read_string in
-  let extensions = Puz_binreader.read_extensions s in
+  let extensions = Puz_bin.read_extensions s in
   { puz with solution; fill; title; author; copyright; notes;
              extensions; clues = Array.to_list clues
   }
