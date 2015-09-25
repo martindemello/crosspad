@@ -202,21 +202,12 @@ class clue_widget ~parent ~clues =
       pack [down_frame] ~side:`Bottom ~expand:true ~fill:`Both
   end
 
-let xw =
-  let xw = Xword.make 15 15 in
-  Xword.set_cell xw 4 5 Black;
-  xw
-
-let clues = {
-  across = ["foo"; "bar"; "baz"];
-  down = ["quux"];
-}
-
 let _ =
+  let xw = File.read "lat140105.puz" in
   let clue_frame = Frame.create ~relief:`Groove ~borderwidth:2 top in
   let xw_frame = Frame.create ~relief:`Groove ~borderwidth:2 top in
   let xw_widget = new xw_canvas ~parent:xw_frame ~xword:xw in
-  let clue_widget = new clue_widget ~parent:clue_frame ~clues:clues in
+  let clue_widget = new clue_widget ~parent:clue_frame ~clues:xw.clues in
   pack [xw_frame] ~side:`Left ~expand:false ~anchor:`N;
   pack [clue_frame] ~side:`Right ~expand:true ~fill:`Both
 

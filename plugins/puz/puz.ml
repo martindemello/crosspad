@@ -154,9 +154,12 @@ let to_xw puzzle =
   unpack_extensions xw puzzle;
   xw
 
+let read data =
+  let puz = read_puzzle data in
+  let xw = to_xw puz in
+  xw
+
 let _ =
   let fname = "mini.puz" in
   let data = In_channel.read_all fname in
-  let puz = read_puzzle data in
-  let xw = to_xw puz in
-  ignore xw;
+  read data
