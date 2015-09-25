@@ -68,8 +68,10 @@ let bg_of_cell cell is_cursor =
   | _, true -> `Color "pale green"
 
 class xw_canvas ~parent ~xword:xw =
+  let width = xw.cols * scale in
+  let height = xw.rows * scale in
   let canvas = Canvas.create
-      ~width:450 ~height:450 ~borderwidth:2 ~relief:`Sunken ~background: `White
+      ~width ~height ~borderwidth:2 ~relief:`Sunken ~background: `White
       parent in
   object(self)
   val rows = xw.rows
@@ -174,19 +176,23 @@ end
 class clue_listbox ~parent ~label ~clues =
   object(self)
     initializer
-      let scry = Scrollbar.create parent in
+      let scrx = Scrollbar.create ~orient:`Horizontal parent in
+      let scry = Scrollbar.create ~orient:`Vertical parent in
       let label = Label.create ~text:label parent in
       let text = Listbox.create
+          ~xscrollcommand:(Scrollbar.set scrx)
           ~yscrollcommand:(Scrollbar.set scry)
           ~background:(`Color "#FFFFFF")
           ~selectmode:`Browse
           parent
       in
       Scrollbar.configure ~command:(Listbox.yview text) scry;
+      Scrollbar.configure ~command:(Listbox.xview text) scrx;
       Listbox.insert ~index:`End ~texts:clues text;
       pack [label] ~expand:false ~fill:`X ~side:`Top;
-      pack [text] ~expand:true ~fill:`Both ~side:`Left;
-      pack [scry] ~expand:false ~fill:`Y ~side:`Right
+      pack [scrx] ~expand:false ~fill:`X ~side:`Bottom;
+      pack [scry] ~expand:false ~fill:`Y ~side:`Right;
+      pack [text] ~expand:true ~fill:`Both ~side:`Top
   end
 
 class clue_widget ~parent ~clues =
