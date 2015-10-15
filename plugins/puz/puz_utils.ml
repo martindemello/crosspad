@@ -52,5 +52,3 @@ class string_io _string =
       | None -> raise (PuzzleFormatError "Could not read string")
 
   end
-
-

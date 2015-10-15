@@ -34,15 +34,15 @@ type puzzle = {
   n_clues: int;
   version: string;
   fileversion: string;
-  scrambled_cksum: int;
+  scrambled_checksum: int;
   fill: string;
   solution: string;
   clues: string list;
   notes: string;
   extensions: extension list;
-  puzzletype: puzzle_type;
-  solution_state: solution_state;
-  helpers: string list
+  puzzle_type: int;
+  solution_state: int;
+  scrambled_tag: int;
 }
 
 let new_puzzle = {
@@ -56,13 +56,13 @@ let new_puzzle = {
   n_clues = 0;
   version = "1.3";
   fileversion = "1.3";
-  scrambled_cksum = 0;
+  scrambled_checksum = 0;
   fill = "";
   solution = "";
   clues = [];
   notes = "";
   extensions = [];
-  puzzletype = `Normal;
-  solution_state = `Unlocked;
-  helpers = [];
+  puzzle_type = 1;
+  solution_state = 0;
+  scrambled_tag = 0;
 }

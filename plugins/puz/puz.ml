@@ -7,7 +7,6 @@ open Puz_utils
 (* String Constants *)
 let header_cksum_format = "<BBH H H "
 let maskstring = "ICHEATED"
-let file_magic = Str.regexp_string "ACROSS&DOWN"
 let blacksquare = "."
 let extension_header_format = "< 4s  H H "
 
@@ -81,7 +80,8 @@ let read_puzzle data =
      Use the magic string as a start marker and save the preamble for
      round-tripping *)
   let start =
-    try (Str.search_forward file_magic data 0) - 2
+    let file_magic_rx = Str.regexp_string Puz_bin.file_magic in
+    try (Str.search_forward file_magic_rx data 0) - 2
     with Not_found -> raise (PuzzleFormatError "Could not find start of puzzle")
   in
   let s = new string_io data in
