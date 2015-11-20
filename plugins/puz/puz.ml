@@ -4,12 +4,6 @@ open Types
 open Puz_types
 open Puz_utils
 
-(* String Constants *)
-let header_cksum_format = "<BBH H H "
-let maskstring = "ICHEATED"
-let blacksquare = "."
-let extension_header_format = "< 4s  H H "
-
 let fail_read ex =
   let msg = Printf.sprintf "Could not read extension %s" ex.section in
   raise (PuzzleFormatError msg)
@@ -68,11 +62,21 @@ let pack_extension (section, p) =
   let checksum = checksum_of_string data in
   { section; data; length; checksum }
 
-let write_extension p =
-  let ex = pack_extension p in
+let write_extension ex =
   let h = Puz_bin.write_extension_header ex in
   h ^ ex.data
 
+let write_puzzle p =
+  let s0 s = s ^ "\000" in
+  Puz_bin.write_header p ^
+  p.solution ^
+  p.fill ^
+  s0 p.title ^
+  s0 p.author ^
+  s0 p.copyright ^
+  (String.concat ~sep:"" (List.map p.clues s0)) ^
+  p.notes ^
+  String.concat ~sep:"" (List.map p.extensions write_extension)
 
 
 let read_puzzle data =

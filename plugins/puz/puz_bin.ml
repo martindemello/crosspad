@@ -86,7 +86,6 @@ let text_checksum p seed =
   if (p.version = "1.3") then c#add_string_0 p.notes;
   c#sum
 
-
 let global_checksum p =
   let hc = header_checksum p in
   let c = new checksum hc in
