@@ -130,3 +130,9 @@ let toggle_black xw x y =
   | Black -> set_cell xw x y Empty; true
   | Empty -> set_cell xw x y Black; true
   | _ -> false
+
+(* delete a cell unless it is black *)
+let delete_letter xw x y =
+  match get_cell xw x y with
+  | Black -> false
+  | _ -> set_cell xw x y Empty; true

@@ -63,6 +63,16 @@ class xw_widget ~xw ?packing ?show () =
         self#draw
       end
 
+    method delete_letter ~bksp =
+      if bksp then begin
+        let d = match dir with `Across -> `Bksp_Ac | `Down -> `Bksp_Dn in
+        self#move_cursor ~wrap:false d
+      end;
+      if Xword.delete_letter xw cursor.x cursor.y then begin
+        Xword.renumber xw |> ignore;
+      end;
+      self#draw
+
     method set_letter c =
       let s = Char.uppercase c |> String.make 1 in
       Xword.set_cell xw cursor.x cursor.y (Letter s);
@@ -103,6 +113,8 @@ class xw_widget ~xw ?packing ?show () =
       | k when k = GdkKeysyms._KP_Down -> self#move_cursor `Down
       | k when k = GdkKeysyms._space -> self#toggle_black
       | k when k = GdkKeysyms._Page_Up -> self#toggle_dir
+      | k when k = GdkKeysyms._Delete -> self#delete_letter ~bksp:false
+      | k when k = GdkKeysyms._BackSpace -> self#delete_letter ~bksp:true
       | k when is_letter k -> self#set_letter (Char.chr k)
       | _ -> handled := false
       in
