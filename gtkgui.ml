@@ -24,8 +24,8 @@ let bg_of_cell cell is_cursor =
 
 class xw_widget ~xw ?packing ?show () =
   let scale = 30 in
-  let width = xw.cols * scale in
-  let height = xw.rows * scale in
+  let width = xw.cols * scale + 1 in
+  let height = xw.rows * scale + 1 in
   let da = GMisc.drawing_area ~width ~height ?packing ?show () in
   let context = da#misc#create_pango_context in
   let point_to_cell x y =
@@ -37,7 +37,7 @@ class xw_widget ~xw ?packing ?show () =
     val rows = xw.rows
     val cols = xw.cols
     val mutable cursor = Cursor.make xw.rows xw.cols
-    val mutable dir : [`Across | `Down] = `Across
+    val mutable dir : word_direction = `Across
     val mutable size = 0, 0
     val mutable pixmap = None
 
@@ -180,14 +180,63 @@ class xw_widget ~xw ?packing ?show () =
       (new GDraw.drawable da#misc#window)#put_pixmap ~x:0 ~y:0 dr#pixmap
   end
 
+(* Clues *)
+let cluebox_title (dir : word_direction) = match dir with
+  | `Across -> "Across"
+  | `Down -> "Down"
+
+class clue_widget ~xw ~dir ?packing ?show () =
+  let scrolled_win =
+    GBin.scrolled_window ?packing ~width:200
+      ~hpolicy:`AUTOMATIC ~vpolicy:`AUTOMATIC ()
+  in
+  let cols = new GTree.column_list in
+  let column = cols#add Gobject.Data.string in
+  let model = GTree.list_store cols in
+  let clues = Xword.get_clues xw dir in
+  let title = cluebox_title dir in
+  let clue_col_view =
+    let col = GTree.view_column ~title () in
+    let str_renderer = GTree.cell_renderer_text [
+        `XALIGN 0.; `YPAD 1
+      ] in
+    col#pack str_renderer ;
+    col#set_cell_data_func str_renderer
+      (fun model row ->
+         let str = model#get ~row ~column in
+         str_renderer#set_properties [ `TEXT str ]);
+    col
+  in
+  let view = GTree.view ~model ~packing:scrolled_win#add () in
+  object(self)
+    inherit GObj.widget_full scrolled_win#as_widget
+
+    initializer
+      List.iter ~f:(fun clue ->
+          let row = model#append () in
+          model#set ~row ~column clue)
+        clues;
+      view#append_column clue_col_view; ()
+  end
+
+class clues_widget ~xw ?packing ?show () =
+  let vbox = GPack.vbox ?packing ?show () in
+  let ac = new clue_widget ~xw ~dir:`Across ~packing:vbox#add ?show () in
+  let dn = new clue_widget ~xw ~dir:`Down ~packing:vbox#add ?show () in
+  object(self)
+    inherit GObj.widget_full vbox#as_widget
+  end
+
+
 let () =
   let w = GWindow.window () in
   w#connect#destroy ~callback:GMain.quit;
-  let hbox = GPack.hbox ~packing:w#add () in
-  let fr = GBin.frame ~border_width:3 ~shadow_type:`IN ~packing:hbox#add () in
+  let vbox = GPack.vbox ~packing:w#add () in
+  let hbox = GPack.hbox ~packing:vbox#add () in
+  let fr = GBin.frame ~border_width:3 ~shadow_type:`IN ~packing:(hbox#pack ~expand:false) () in
   let xw = File.read "lat140105.puz" in
   let xword = new xw_widget ~packing:fr#add ~xw:xw () in
-  let vbox = GPack.vbox ~border_width:3 ~spacing:4 ~packing:hbox#pack () in
+  let clues = new clues_widget ~packing:hbox#add ~xw () in
   let quit = GButton.button ~label:"Quit" ~packing:vbox#pack () in
   quit#connect#clicked ~callback:GMain.quit;
   w#show ();

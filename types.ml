@@ -18,7 +18,10 @@ type clues = {
   mutable down : string list;
 }
 
+(* Directions for cursor movement on the grid *)
 type direction = [`Left | `Right | `Up | `Down | `Across | `Bksp_Ac | `Bksp_Dn ]
+
+type word_direction = [`Across | `Down]
 
 type xword = {
   rows : int;

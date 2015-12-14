@@ -89,6 +89,10 @@ let encode_rebus xw =
     );
     m
 
+let get_clues xw (dir : word_direction) = match dir with
+  | `Across -> xw.clues.across
+  | `Down -> xw.clues.down
+
 let clue_numbers xw =
   let ac = ref [] in
   let dn = ref [] in
