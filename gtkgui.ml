@@ -200,7 +200,7 @@ class clue_widget ~xw ~dir ?packing ?show () =
     let str_renderer = GTree.cell_renderer_text [
         `XALIGN 0.; `YPAD 1
       ] in
-    col#pack str_renderer ;
+    col#pack str_renderer;
     col#set_cell_data_func str_renderer
       (fun model row ->
          let str = model#get ~row ~column in
@@ -227,16 +227,57 @@ class clues_widget ~xw ?packing ?show () =
     inherit GObj.widget_full vbox#as_widget
   end
 
+class metadata_widget ~xw ?packing ?show () =
+  let scrolled_win =
+    GBin.scrolled_window ?packing
+      ~hpolicy:`AUTOMATIC ~vpolicy:`AUTOMATIC ()
+  in
+  let cols = new GTree.column_list in
+  let key_col = cols#add Gobject.Data.string in
+  let val_col = cols#add Gobject.Data.string in
+  let model = GTree.list_store cols in
+  let make_view ~column =
+    let str_renderer = GTree.cell_renderer_text [
+        `XALIGN 0.; `YPAD 1
+      ] in
+    let col = GTree.view_column () in
+    col#pack str_renderer;
+    col#set_cell_data_func str_renderer
+      (fun model row ->
+         let str = model#get ~row ~column in
+         str_renderer#set_properties [ `TEXT str ]);
+    col
+  in
+  let key_col_view = make_view key_col in
+  let val_col_view = make_view val_col in
+  let view = GTree.view ~model ~packing:scrolled_win#add () in
+  object(self)
+    inherit GObj.widget_full scrolled_win#as_widget
+
+    initializer
+      List.iter ~f:(fun (k, v) ->
+          let row = model#append () in
+          model#set ~row ~column:key_col k;
+          model#set ~row ~column:val_col v;
+        )
+        xw.metadata;
+      view#append_column key_col_view;
+      view#append_column val_col_view; ()
+  end
+
 
 let () =
   let w = GWindow.window () in
   w#connect#destroy ~callback:GMain.quit;
   let vbox = GPack.vbox ~packing:w#add () in
   let hbox = GPack.hbox ~packing:vbox#add () in
-  let fr = GBin.frame ~border_width:3 ~shadow_type:`IN ~packing:(hbox#pack ~expand:false) () in
+  let vb1 = GPack.vbox ~packing:(hbox#pack ~expand:false) () in
+  let fr = GBin.frame ~border_width:3 ~shadow_type:`IN
+      ~packing:(vb1#pack ~expand:false) () in
   let xw = File.read "lat140105.puz" in
   let xword = new xw_widget ~packing:fr#add ~xw:xw () in
   let clues = new clues_widget ~packing:hbox#add ~xw () in
+  let meta = new metadata_widget ~packing:vb1#add ~xw () in
   let quit = GButton.button ~label:"Quit" ~packing:vbox#pack () in
   quit#connect#clicked ~callback:GMain.quit;
   w#show ();

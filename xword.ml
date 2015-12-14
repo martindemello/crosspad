@@ -7,7 +7,8 @@ let make rows cols =
     rows = rows;
     cols = cols;
     grid = Array.make_matrix rows cols sq;
-    clues = { across = []; down = [] }
+    clues = { across = []; down = [] };
+    metadata = []
   }
 
 let get xw x y = xw.grid.(y).(x)
