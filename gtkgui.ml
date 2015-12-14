@@ -2,6 +2,8 @@ open StdLabels
 open Types
 open Cursor
 
+let utf8 s = Glib.Convert.convert s "UTF-8" "ISO-8859-1"
+
 let check_cache ~cond ~create ~destroy = function
     Some pm ->
       if cond pm then pm else begin
@@ -204,7 +206,7 @@ class clue_widget ~xw ~dir ?packing ?show () =
     col#set_cell_data_func str_renderer
       (fun model row ->
          let str = model#get ~row ~column in
-         str_renderer#set_properties [ `TEXT str ]);
+         str_renderer#set_properties [ `TEXT (utf8 str) ]);
     col
   in
   let view = GTree.view ~model ~packing:scrolled_win#add () in
@@ -245,7 +247,7 @@ class metadata_widget ~xw ?packing ?show () =
     col#set_cell_data_func str_renderer
       (fun model row ->
          let str = model#get ~row ~column in
-         str_renderer#set_properties [ `TEXT str ]);
+         str_renderer#set_properties [ `TEXT (utf8 str) ]);
     col
   in
   let key_col_view = make_view key_col in
@@ -267,6 +269,7 @@ class metadata_widget ~xw ?packing ?show () =
 
 
 let () =
+  let locale = GMain.init ~setlocale:true () in
   let w = GWindow.window () in
   w#connect#destroy ~callback:GMain.quit;
   let vbox = GPack.vbox ~packing:w#add () in

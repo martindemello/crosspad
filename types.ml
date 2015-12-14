@@ -28,5 +28,5 @@ type xword = {
   cols : int;
   grid : square array array;
   clues : clues;
-  metadata : (string * string) list;
+  mutable metadata : (string * string) list;
 }

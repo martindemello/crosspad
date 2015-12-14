@@ -151,11 +151,20 @@ let unpack_extensions xw puzzle =
       )
   | _ -> () (* if we don't have both rtbl and grbs do nothing *)
 
+let unpack_metadata xw p =
+  xw.metadata <- [
+    ("Title", p.title);
+    ("Author", p.author);
+    ("Copyright", p.copyright);
+    ("Notes", p.notes)
+  ]
+
 let to_xw puzzle =
   let xw = Xword.make puzzle.height puzzle.width in
   unpack_solution xw puzzle;
   unpack_clues xw puzzle;
   unpack_extensions xw puzzle;
+  unpack_metadata xw puzzle;
   xw
 
 let read data =
