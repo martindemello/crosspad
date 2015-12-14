@@ -1,7 +1,7 @@
-all: gui
+all: gtk
 
-gui:
-	ocamlbuild -use-ocamlfind -I plugins/puz gui.native
+tk:
+	ocamlbuild -use-ocamlfind -I plugins/puz tkgui.native
 
 gtk:
 	ocamlbuild -use-ocamlfind -I plugins/puz gtkgui.native
