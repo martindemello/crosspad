@@ -182,6 +182,16 @@ class xw_widget ~xw ?packing ?show () =
       (new GDraw.drawable da#misc#window)#put_pixmap ~x:0 ~y:0 dr#pixmap
   end
 
+let make_cell_view ~column ~title ~opts =
+  let renderer = GTree.cell_renderer_text opts in
+  let col = GTree.view_column ~title () in
+  col#pack renderer;
+  col#set_cell_data_func renderer
+    (fun model row ->
+       let str = model#get ~row ~column in
+       renderer#set_properties [ `TEXT (utf8 str) ]);
+  col
+
 (* Clues *)
 let cluebox_title (dir : word_direction) = match dir with
   | `Across -> "Across"
@@ -197,17 +207,8 @@ class clue_widget ~xw ~dir ?packing ?show () =
   let model = GTree.list_store cols in
   let clues = Xword.get_clues xw dir in
   let title = cluebox_title dir in
-  let clue_col_view =
-    let col = GTree.view_column ~title () in
-    let str_renderer = GTree.cell_renderer_text [
-        `XALIGN 0.; `YPAD 1
-      ] in
-    col#pack str_renderer;
-    col#set_cell_data_func str_renderer
-      (fun model row ->
-         let str = model#get ~row ~column in
-         str_renderer#set_properties [ `TEXT (utf8 str) ]);
-    col
+  let clue_col_view = make_cell_view ~column ~title
+      ~opts: [ `XALIGN 0.; `YPAD 1 ]
   in
   let view = GTree.view ~model ~packing:scrolled_win#add () in
   object(self)
@@ -229,6 +230,7 @@ class clues_widget ~xw ?packing ?show () =
     inherit GObj.widget_full vbox#as_widget
   end
 
+(* Metadata *)
 class metadata_widget ~xw ?packing ?show () =
   let scrolled_win =
     GBin.scrolled_window ?packing
@@ -238,17 +240,8 @@ class metadata_widget ~xw ?packing ?show () =
   let key_col = cols#add Gobject.Data.string in
   let val_col = cols#add Gobject.Data.string in
   let model = GTree.list_store cols in
-  let make_view ~column =
-    let str_renderer = GTree.cell_renderer_text [
-        `XALIGN 0.; `YPAD 1
-      ] in
-    let col = GTree.view_column () in
-    col#pack str_renderer;
-    col#set_cell_data_func str_renderer
-      (fun model row ->
-         let str = model#get ~row ~column in
-         str_renderer#set_properties [ `TEXT (utf8 str) ]);
-    col
+  let make_view ~column = make_cell_view ~column ~title:""
+      ~opts: [ `XALIGN 0.; `YPAD 1 ]
   in
   let key_col_view = make_view key_col in
   let val_col_view = make_view val_col in
@@ -277,7 +270,8 @@ let () =
   let vb1 = GPack.vbox ~packing:(hbox#pack ~expand:false) () in
   let fr = GBin.frame ~border_width:3 ~shadow_type:`IN
       ~packing:(vb1#pack ~expand:false) () in
-  let xw = File.read "lat140105.puz" in
+  let input = { name = "lat140105.puz"; format = "acrosslite_binary" } in
+  let xw = File.read input in
   let xword = new xw_widget ~packing:fr#add ~xw:xw () in
   let clues = new clues_widget ~packing:hbox#add ~xw () in
   let meta = new metadata_widget ~packing:vb1#add ~xw () in

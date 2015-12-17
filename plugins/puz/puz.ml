@@ -172,6 +172,9 @@ let read data =
   let xw = to_xw puz in
   xw
 
+let write xword =
+  ""
+
 let _ =
   let fname = "mini.puz" in
   let data = In_channel.read_all fname in

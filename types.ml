@@ -30,3 +30,18 @@ type xword = {
   clues : clues;
   mutable metadata : (string * string) list;
 }
+
+type file = {
+  name : string;
+  format : string;
+}
+
+(* Plugin interfaces *)
+
+module type READER = sig
+  val read : string -> xword
+end
+
+module type WRITER = sig
+  val write : xword -> string
+end
