@@ -69,10 +69,11 @@ let renumber ?(on_ac=ignore) ?(on_dn=ignore) xw =
  * with the same solution have the same symbol. Symbols are
  * integers from 1..
  *
- * Returns a map of solution -> rebus {solution; symbol; ...}
+ * Returns a list of [(symbol, solution)], mostly for acrosslite output.
  *)
 let encode_rebus xw =
   let m = ref (String.Map.empty) in
+  let l = ref [] in
   let k = ref 0 in
   iteri xw (fun i x y c ->
       match c with
@@ -83,12 +84,13 @@ let encode_rebus xw =
               k := !k + 1;
               let nr = { r with symbol = !k } in
               set_cell xw x y (Rebus nr);
-              m := Map.add !m ~key:r.solution ~data:r
+              m := Map.add !m ~key:nr.solution ~data:nr;
+              l := (nr.symbol, nr.solution) :: !l
             end
         end
       | _ -> ()
     );
-    m
+  List.rev !l
 
 let get_clues xw (dir : word_direction) = match dir with
   | `Across -> xw.clues.across
@@ -103,20 +105,26 @@ let clue_numbers xw =
     xw;
   List.rev !ac, List.rev !dn
 
-let inspect_grid xw =
+let format_grid xw ~fmt ~rowsep ~charsep =
+  let s = ref "" in
   for y = 0 to xw.rows - 1 do
     for x = 0 to xw.cols - 1 do
-      let c = match (get_cell xw x y) with
-        | Black -> "#"
-        | Empty -> "."
-        | Letter c -> c
-        | Rebus r -> r.display_char
-      in
-      print_string c;
-      print_string " "
+      let c = get_cell xw x y in
+      s := !s ^ fmt c ^ charsep
     done;
-    print_newline ()
-  done
+    if y <> xw.rows - 1 then s := !s ^ rowsep
+  done;
+  !s
+
+let inspect_grid xw =
+  let fmt = function
+    | Black -> "#"
+    | Empty -> "."
+    | Letter c -> c
+    | Rebus r -> r.display_char
+  in
+  let s = format_grid xw ~rowsep:"\n" ~charsep:" " ~fmt in
+  print_endline s
 
 let inspect_clues xw =
   let ac, dn = clue_numbers xw in
@@ -141,3 +149,9 @@ let delete_letter xw x y =
   match get_cell xw x y with
   | Black -> false
   | _ -> set_cell xw x y Empty; true
+
+(* Get metadata *)
+let metadata xw k =
+  match List.Assoc.find xw.metadata k with
+  | Some v -> v
+  | None -> ""

@@ -66,6 +66,7 @@ let write_extension ex =
   let h = Puz_bin.write_extension_header ex in
   h ^ ex.data
 
+(* puzzle -> data *)
 let write_puzzle p =
   let s0 s = s ^ "\000" in
   Puz_bin.write_header p ^
@@ -78,7 +79,7 @@ let write_puzzle p =
   p.notes ^
   String.concat ~sep:"" (List.map p.extensions write_extension)
 
-
+(* data -> puzzle *)
 let read_puzzle data =
   (* Files may contain some data before the start of the puzzle.
      Use the magic string as a start marker and save the preamble for
@@ -131,24 +132,26 @@ let unpack_solution xw puzzle =
     done
   done
 
+let unpack_rebus xw grbs rtbl =
+  Xword.iteri xw (fun i x y c ->
+      let n = Char.to_int grbs.[i] in
+      if n > 0 then begin
+        let n = n - 1 in
+        let s = match List.Assoc.find rtbl n with
+          | Some str -> str
+          | None -> raise (PuzzleFormatError "Invalid rebus extension")
+        in
+        let display_char = String.sub s ~pos:0 ~len:1 in
+        let r = Rebus { symbol = n; solution = s; display_char } in
+        Xword.set_cell xw x y r
+      end
+    )
+
 let unpack_extensions xw puzzle =
   let ex = List.map puzzle.extensions ~f:(parse_extension puzzle) in
   let get_ex = List.Assoc.find ex in
   match get_ex "GRBS", get_ex "RTBL" with
-  | Some (`GRBS grbs), Some (`RTBL rtbl) ->
-    Xword.iteri xw (fun i x y c ->
-        let n = Char.to_int grbs.[i] in
-        if n > 0 then begin
-          let n = n - 1 in
-          let s = match List.Assoc.find rtbl n with
-            | Some str -> str
-            | None -> raise (PuzzleFormatError "Invalid rebus extension")
-          in
-          let display_char = String.sub s ~pos:0 ~len:1 in
-          let r = Rebus { symbol = n; solution = s; display_char } in
-          Xword.set_cell xw x y r
-        end
-      )
+  | Some (`GRBS grbs), Some (`RTBL rtbl) -> unpack_rebus xw grbs rtbl
   | _ -> () (* if we don't have both rtbl and grbs do nothing *)
 
 let unpack_metadata xw p =
@@ -167,13 +170,70 @@ let to_xw puzzle =
   unpack_metadata xw puzzle;
   xw
 
+(* xword -> puzzle conversion *)
 let read data =
   let puz = read_puzzle data in
   let xw = to_xw puz in
   xw
 
+let pack_clues xw =
+  let cmp (x, _) (y, _) = compare x y in
+  let hd, tl = List.hd_exn, List.tl_exn in
+  let ac, dn = Xword.clue_numbers xw in
+  let nums = List.append
+      (List.map ~f:(fun x -> (x, `Ac)) ac)
+      (List.map ~f:(fun x -> (x, `Dn)) dn)
+  in
+  let nums = List.sort ~cmp nums in
+  let rec weave ns a d out = match ns with
+    | [] -> List.rev out
+    | (x, `Ac) :: xs -> weave xs (tl a) d ((hd a) :: out)
+    | (x, `Dn) :: xs -> weave xs a (tl d) ((hd d) :: out)
+  in
+  weave nums xw.clues.across xw.clues.down []
+
+(* pack a grid as a single string of chars *)
+let pack_grid xw ~fmt = Xword.format_grid xw ~charsep:"" ~rowsep:"" ~fmt
+
+let pack_extensions xw =
+  let rtbl = Xword.encode_rebus xw in
+  let fmt = function
+    | Rebus r -> Char.to_string (Char.of_int_exn r.symbol)
+    | _ -> "\000"
+  in
+  let grbs = pack_grid xw ~fmt in
+  List.map ~f:pack_extension ["GRBS", `GRBS grbs; "RTBL", `RTBL rtbl]
+
+let pack_solution xw =
+  let fmt = function
+    | Rebus r -> r.display_char
+    | Letter c -> c
+    | _ -> "."
+  in
+  pack_grid xw ~fmt
+
+let to_puzzle xw =
+  let meta = Xword.metadata xw in
+  let clues = pack_clues xw in
+  let empty_fill = pack_grid xw ~fmt:(function Black -> "." | _ -> "-") in
+  { new_puzzle with
+    title = meta "Title";
+    author = meta "Author";
+    copyright = meta "Copyright";
+    width = xw.cols;
+    height = xw.rows;
+    n_clues = List.length clues;
+    fill = empty_fill;
+    solution = pack_solution xw;
+    clues = clues;
+    extensions = pack_extensions xw;
+  }
+ 
+
+(* Writer *)
 let write xword =
-  ""
+  let puz = to_puzzle xword in
+  write_puzzle puz
 
 let _ =
   let fname = "mini.puz" in

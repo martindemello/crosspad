@@ -33,7 +33,6 @@ type puzzle = {
   height: int;
   n_clues: int;
   version: string;
-  fileversion: string;
   scrambled_checksum: int;
   fill: string;
   solution: string;
@@ -55,7 +54,6 @@ let new_puzzle = {
   height = 0;
   n_clues = 0;
   version = "1.3";
-  fileversion = "1.3";
   scrambled_checksum = 0;
   fill = "";
   solution = "";
