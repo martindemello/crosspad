@@ -76,7 +76,7 @@ let write_puzzle p =
   s0 p.author ^
   s0 p.copyright ^
   (String.concat ~sep:"" (List.map p.clues s0)) ^
-  p.notes ^
+  s0 p.notes ^
   String.concat ~sep:"" (List.map p.extensions write_extension)
 
 (* data -> puzzle *)
@@ -197,12 +197,14 @@ let pack_grid xw ~fmt = Xword.format_grid xw ~charsep:"" ~rowsep:"" ~fmt
 
 let pack_extensions xw =
   let rtbl = Xword.encode_rebus xw in
-  let fmt = function
-    | Rebus r -> Char.to_string (Char.of_int_exn r.symbol)
-    | _ -> "\000"
-  in
-  let grbs = pack_grid xw ~fmt in
-  List.map ~f:pack_extension ["GRBS", `GRBS grbs; "RTBL", `RTBL rtbl]
+  if List.is_empty rtbl then [] else begin
+    let fmt = function
+      | Rebus r -> Char.to_string (Char.of_int_exn r.symbol)
+      | _ -> "\000"
+    in
+    let grbs = pack_grid xw ~fmt in
+    List.map ~f:pack_extension ["GRBS", `GRBS grbs; "RTBL", `RTBL rtbl]
+  end
 
 let pack_solution xw =
   let fmt = function
@@ -228,7 +230,6 @@ let to_puzzle xw =
     clues = clues;
     extensions = pack_extensions xw;
   }
- 
 
 (* Writer *)
 let write xword =

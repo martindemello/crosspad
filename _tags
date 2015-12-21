@@ -7,6 +7,9 @@ true: package(core_kernel)
 <gtkgui.*>: package(lablgtk2), package(lablgtk2.auto-init), package(unix), package(str), package(core_kernel), package(bitstring), package(mikmatch_pcre)
 
 <tkgui.*>: package(labltk), package(unix), package(str), package(core_kernel), package(bitstring), package(mikmatch_pcre)
+
+<cli.*>: package(unix), package(str), package(core_kernel), package(bitstring), package(mikmatch_pcre)
+
 <**/puz.*>: package(unix), package(str), package(core_kernel), package(bitstring), package(mikmatch_pcre)
 <**/*_bin.*>: package(bitstring.syntax), syntax(bitstring)
 <**/*_match.*>: package(mikmatch_pcre), syntax(camlp4o)

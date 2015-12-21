@@ -94,8 +94,8 @@ let global_checksum p =
   c#sum
 
 let magic_checksums p =
-  (* mask = "ICHEATED" *)
-  let mask = [| 73l; 67l; 72l; 69l; 65l; 84l; 69l; 68l |] in
+  let f c = Char.to_int c |> Int32.of_int_exn in
+  let mask = Array.map ~f (Array.of_list @@ String.to_list "ICHEATED") in
   let sums = List.map [
     text_checksum p 0;
     checksum_of_string p.fill;
@@ -114,6 +114,7 @@ let magic_checksums p =
 type checksums = {
   low : int32; high : int32; cib : int; global : int; scrambled : int
 }
+
 let checksums p =
   let l, h = magic_checksums p in
   {
@@ -125,16 +126,19 @@ let checksums p =
   }
 
 let write_header p =
+  let module S = String in
+  let s0 s = s ^ "\000" in
   let ck = checksums p in
   let reserved1c = 0 in
-  let reserved20 = String.make 12 '\000' in
+  let reserved20 = S.make 12 '\000' in
+  let version = p.version ^ (S.make (4 - (S.length p.version)) '\000') in
   let b = BITSTRING {
       ck.global: 2 * 8;
-      file_magic: 0xc * 8 : string;
+      s0 file_magic: 0xc * 8 : string;
       ck.cib: 16 : littleendian;
       ck.low: 32 : littleendian;
       ck.high: 32 : littleendian;
-      p.version: 32 : string;
+      version: 32 : string;
       reserved1c : 16;
       ck.scrambled : 16 : littleendian;
       reserved20 : 0xc * 8 : string;
