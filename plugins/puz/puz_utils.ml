@@ -52,3 +52,15 @@ class string_io _string =
       | None -> raise (PuzzleFormatError "Could not read string")
 
   end
+
+(* binary string functions *)
+
+let s0 s = s ^ "\000"
+
+let pad0 s len = s ^ (String.make (len - (String.length s)) '\000')
+
+let array_of_string s = Array.of_list (String.to_list s)
+
+let int32_of_char c = Char.to_int c |> Int32.of_int_exn
+
+let concat_map ?sep:(sep="") ~f xs = String.concat ~sep (List.map ~f xs)

@@ -4,11 +4,12 @@ open Types
 open Puz_types
 open Puz_utils
 
+(* extensions *)
 let fail_read ex =
   let msg = Printf.sprintf "Could not read extension %s" ex.section in
   raise (PuzzleFormatError msg)
 
-(* extension -> parsed_extension *)
+(* packed extension -> parsed_extension *)
 let parse_extension puz ex =
   let n_cells = puz.width * puz.height in
   let last s = String.length s - 1 in
@@ -38,22 +39,22 @@ let parse_extension puz ex =
     end
   |_ -> fail_read ex
 
-(* parsed_extension -> extension *)
-let write_ltim (x, y) =
+(* parsed_extension -> packed extension *)
+let pack_ltim (x, y) =
   Printf.sprintf "%d,%d" x y
 
-let write_grbs s = s
+let pack_grbs s = s
 
-let write_gext s = s
+let pack_gext s = s
 
-let write_rtbl xs =
-  String.concat (List.map xs (fun (x, y) -> Printf.sprintf "%2d:%s;" x y))
+let pack_rtbl xs =
+  concat_map xs ~f:(fun (x, y) -> Printf.sprintf "%2d:%s;" x y)
 
 let data_of_extension = function
-  | `RTBL x -> write_rtbl x
-  | `GRBS x -> write_grbs x
-  | `GEXT x -> write_gext x
-  | `LTIM x -> write_ltim x
+  | `RTBL x -> pack_rtbl x
+  | `GRBS x -> pack_grbs x
+  | `GEXT x -> pack_gext x
+  | `LTIM x -> pack_ltim x
 
 let pack_extension (section, p) =
   let data = data_of_extension p in
@@ -62,11 +63,11 @@ let pack_extension (section, p) =
   let checksum = checksum_of_string data in
   { section; data; length; checksum }
 
+(* puzzle -> data *)
 let write_extension ex =
   let h = Puz_bin.write_extension_header ex in
   h ^ ex.data
 
-(* puzzle -> data *)
 let write_puzzle p =
   let s0 s = s ^ "\000" in
   Puz_bin.write_header p ^
@@ -75,9 +76,9 @@ let write_puzzle p =
   s0 p.title ^
   s0 p.author ^
   s0 p.copyright ^
-  (String.concat ~sep:"" (List.map p.clues s0)) ^
+  concat_map ~f:s0 p.clues ^
   s0 p.notes ^
-  String.concat ~sep:"" (List.map p.extensions write_extension)
+  concat_map ~f:write_extension p.extensions
 
 (* data -> puzzle *)
 let read_puzzle data =
@@ -162,7 +163,7 @@ let unpack_metadata xw p =
     ("Notes", p.notes)
   ]
 
-let to_xw puzzle =
+let xword_of_puzzle puzzle =
   let xw = Xword.make puzzle.height puzzle.width in
   unpack_solution xw puzzle;
   unpack_clues xw puzzle;
@@ -171,11 +172,6 @@ let to_xw puzzle =
   xw
 
 (* xword -> puzzle conversion *)
-let read data =
-  let puz = read_puzzle data in
-  let xw = to_xw puz in
-  xw
-
 let pack_clues xw =
   let cmp (x, _) (y, _) = compare x y in
   let hd, tl = List.hd_exn, List.tl_exn in
@@ -195,16 +191,20 @@ let pack_clues xw =
 (* pack a grid as a single string of chars *)
 let pack_grid xw ~fmt = Xword.format_grid xw ~charsep:"" ~rowsep:"" ~fmt
 
-let pack_extensions xw =
+let pack_rebus xw =
   let rtbl = Xword.encode_rebus xw in
   if List.is_empty rtbl then [] else begin
     let fmt = function
-      | Rebus r -> Char.to_string (Char.of_int_exn r.symbol)
+      | Rebus r -> Char.to_string (Char.of_int_exn (r.symbol + 1))
       | _ -> "\000"
     in
     let grbs = pack_grid xw ~fmt in
     List.map ~f:pack_extension ["GRBS", `GRBS grbs; "RTBL", `RTBL rtbl]
   end
+
+(* TODO: non-rebus extensions *)
+let pack_extensions xw =
+  pack_rebus xw
 
 let pack_solution xw =
   let fmt = function
@@ -214,7 +214,7 @@ let pack_solution xw =
   in
   pack_grid xw ~fmt
 
-let to_puzzle xw =
+let puzzle_of_xword xw =
   let meta = Xword.metadata xw in
   let clues = pack_clues xw in
   let empty_fill = pack_grid xw ~fmt:(function Black -> "." | _ -> "-") in
@@ -222,6 +222,7 @@ let to_puzzle xw =
     title = meta "Title";
     author = meta "Author";
     copyright = meta "Copyright";
+    notes = meta "Notes";
     width = xw.cols;
     height = xw.rows;
     n_clues = List.length clues;
@@ -231,12 +232,12 @@ let to_puzzle xw =
     extensions = pack_extensions xw;
   }
 
-(* Writer *)
-let write xword =
-  let puz = to_puzzle xword in
-  write_puzzle puz
+(* Public interface *)
 
-let _ =
-  let fname = "mini.puz" in
-  let data = In_channel.read_all fname in
-  read data
+let read data =
+  let puz = read_puzzle data in
+  xword_of_puzzle puz
+
+let write xword =
+  let puz = puzzle_of_xword xword in
+  write_puzzle puz

@@ -67,7 +67,7 @@ let renumber ?(on_ac=ignore) ?(on_dn=ignore) xw =
 
 (* Update the 'symbol' field in every rebus square, so that cells
  * with the same solution have the same symbol. Symbols are
- * integers from 1..
+ * integers from 0..
  *
  * Returns a list of [(symbol, solution)], mostly for acrosslite output.
  *)
@@ -81,8 +81,8 @@ let encode_rebus xw =
           match Map.find !m r.solution with
           | Some sr -> set_cell xw x y (Rebus sr)
           | None -> begin
-              k := !k + 1;
               let nr = { r with symbol = !k } in
+              k := !k + 1;
               set_cell xw x y (Rebus nr);
               m := Map.add !m ~key:nr.solution ~data:nr;
               l := (nr.symbol, nr.solution) :: !l

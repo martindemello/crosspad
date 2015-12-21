@@ -27,4 +27,3 @@ let write file xw =
   | None -> "" (* TODO: Handle the error *)
   in
   Out_channel.write_all file.name data
-
