@@ -209,7 +209,8 @@ class clue_widget ~parent ~clues =
   end
 
 let _ =
-  let xw = File.read "lat140105.puz" in
+  let input = { name = "lat140105.puz"; format = "acrosslite_binary" } in
+  let xw = File.read input in
   let clue_frame = Frame.create ~relief:`Groove ~borderwidth:2 top in
   let xw_frame = Frame.create ~relief:`Groove ~borderwidth:2 top in
   let xw_widget = new xw_canvas ~parent:xw_frame ~xword:xw in

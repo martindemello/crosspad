@@ -3,16 +3,12 @@ true: thread,debug
 true: package(core_kernel), package(unix), package(str)
 
 # preprocessing
-
 <**/*_bin.*>: package(bitstring.syntax), syntax(bitstring)
 <**/*_match.*>: package(mikmatch_pcre), syntax(camlp4o)
 
-# non-preprocessed files
-
-<**/*.*> and not <**/*_match.*> and not <**/*_bin.*>: package(bitstring), package(mikmatch_pcre)
+# packages used by plugins, linked when compiling the frontend
+<frontend/*>: package(bitstring), package(mikmatch_pcre)
 
 # frontend
-
 <frontend/gtkgui.*>: package(lablgtk2), package(lablgtk2.auto-init)
-
 <frontend/tkgui.*>: package(labltk)
