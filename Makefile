@@ -1,16 +1,13 @@
 all: gtk
 
 tk:
-	ocamlbuild -use-ocamlfind -I plugins/puz tkgui.native
+	ocamlbuild -use-ocamlfind -I plugins/aclite tkgui.native
 
 gtk:
-	ocamlbuild -use-ocamlfind -I plugins/puz gtkgui.native
+	ocamlbuild -use-ocamlfind -I plugins/aclite gtkgui.native
 
 cli:
-	ocamlbuild -use-ocamlfind -I plugins/puz cli.native
-
-puz:
-	ocamlbuild -use-ocamlfind plugins/puz/puz.native
+	ocamlbuild -use-ocamlfind -I plugins/aclite cli.native
 
 clean:
 	ocamlbuild -clean
