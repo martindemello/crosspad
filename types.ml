@@ -36,6 +36,8 @@ type file = {
   format : string;
 }
 
+exception PuzzleFormatError of string
+
 (* Plugin interfaces *)
 
 module type READER = sig

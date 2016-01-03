@@ -1,5 +1,3 @@
-exception PuzzleFormatError of string
-
 (* Datatypes *)
 
 type puzzle_type = [`Normal | `Diagramless]

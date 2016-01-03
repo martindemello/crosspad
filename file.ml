@@ -6,7 +6,8 @@ let readers = [
 ]
 
 let writers = [
-  "acrosslite_binary", (module Puz : WRITER)
+  "acrosslite_binary", (module Puz : WRITER);
+  "acrosslite_text", (module Text : WRITER)
 ]
 
 let get_reader format = List.Assoc.find readers format

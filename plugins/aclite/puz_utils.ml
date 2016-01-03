@@ -1,5 +1,6 @@
 open Core_kernel.Std
 open Puz_types
+open Types
 
 (* CRC checksum for binary format *)
 class checksum ~seed =

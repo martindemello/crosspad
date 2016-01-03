@@ -192,7 +192,7 @@ let pack_clues xw =
 let pack_grid xw ~fmt = Xword.format_grid xw ~charsep:"" ~rowsep:"" ~fmt
 
 let pack_rebus xw =
-  let rtbl = Xword.encode_rebus xw in
+  let rtbl, _ = Xword.encode_rebus xw in
   if List.is_empty rtbl then [] else begin
     let fmt = function
       | Rebus r -> Char.to_string (Char.of_int_exn (r.symbol + 1))

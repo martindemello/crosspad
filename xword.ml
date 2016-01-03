@@ -69,7 +69,9 @@ let renumber ?(on_ac=ignore) ?(on_dn=ignore) xw =
  * with the same solution have the same symbol. Symbols are
  * integers from 0..
  *
- * Returns a list of [(symbol, solution)], mostly for acrosslite output.
+ * Returns:
+ *  a list of [(symbol, solution)]
+ *  a map of {solution -> Rebus}
  *)
 let encode_rebus xw =
   let m = ref (String.Map.empty) in
@@ -90,7 +92,7 @@ let encode_rebus xw =
         end
       | _ -> ()
     );
-  List.rev !l
+  (List.rev !l, !m)
 
 let get_clues xw (dir : word_direction) = match dir with
   | `Across -> xw.clues.across
