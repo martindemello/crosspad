@@ -157,10 +157,10 @@ let unpack_extensions xw puzzle =
 
 let unpack_metadata xw p =
   xw.metadata <- [
-    ("Title", p.title);
-    ("Author", p.author);
-    ("Copyright", p.copyright);
-    ("Notes", p.notes)
+    (`Title, p.title);
+    (`Author, p.author);
+    (`Copyright, p.copyright);
+    (`Notes, p.notes)
   ]
 
 let xword_of_puzzle puzzle =
@@ -219,10 +219,10 @@ let puzzle_of_xword xw =
   let clues = pack_clues xw in
   let empty_fill = pack_grid xw ~fmt:(function Black -> "." | _ -> "-") in
   { new_puzzle with
-    title = meta "Title";
-    author = meta "Author";
-    copyright = meta "Copyright";
-    notes = meta "Notes";
+    title = meta `Title;
+    author = meta `Author;
+    copyright = meta `Copyright;
+    notes = meta `Notes;
     width = xw.cols;
     height = xw.rows;
     n_clues = List.length clues;

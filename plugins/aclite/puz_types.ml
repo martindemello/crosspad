@@ -12,6 +12,8 @@ type parsed_extension = [ `RTBL of (int * string) list
                         | `LTIM of (int * int)
                         ]
 
+type puz_metadata = [`Title | `Author | `Copyright | `Notes]
+
 (* extension read in from binary *)
 type extension = {
   section: string;

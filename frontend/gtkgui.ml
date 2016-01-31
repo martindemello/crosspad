@@ -1,6 +1,7 @@
 open StdLabels
 open Types
 open Cursor
+open Utils
 
 let utf8 s = Glib.Convert.convert s "UTF-8" "ISO-8859-1"
 
@@ -251,6 +252,7 @@ class metadata_widget ~xw ?packing ?show () =
 
     initializer
       List.iter ~f:(fun (k, v) ->
+          let k = string_of_metadata_key k in
           let row = model#append () in
           model#set ~row ~column:key_col k;
           model#set ~row ~column:val_col v;

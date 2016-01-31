@@ -23,12 +23,35 @@ type direction = [`Left | `Right | `Up | `Down | `Across | `Bksp_Ac | `Bksp_Dn ]
 
 type word_direction = [`Across | `Down]
 
+(* Metadata fields supported by ipuz *)
+
+type metadata_key = 
+[ `Copyright
+| `Publisher
+| `Publication
+| `Url
+| `Uniqueid
+| `Title
+| `Intro
+| `Explanation
+| `Annotation
+| `Author
+| `Editor
+| `Date
+| `Notes
+| `Difficulty
+| `Origin
+| `Block
+| `Empty
+| `Styles
+]
+
 type xword = {
   rows : int;
   cols : int;
   grid : square array array;
   clues : clues;
-  mutable metadata : (string * string) list;
+  mutable metadata : (metadata_key * string) list;
 }
 
 type file = {
