@@ -9,6 +9,7 @@ RE rtbl = bos rtbl_entry+ '\000' eos
 RE rtbl_capture = (digit+ as symbol : int) ":" (alpha+ as word)
 
 RE text_section_header = "<" (alpha+ as word) ">"
+RE text_size = (digit+ as rows : int) "x" (digit+ as cols : int)
 
 let match_ltim s = match s with
   | RE ltim -> Some (x, y)
@@ -22,4 +23,8 @@ let match_rtbl s =
 
 let match_text_section s = match s with
   | RE text_section_header -> Some word
+  | _ -> None
+
+let match_text_size s = match s with
+  | RE text_size -> Some (rows, cols)
   | _ -> None

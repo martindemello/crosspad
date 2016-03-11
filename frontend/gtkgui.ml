@@ -272,7 +272,7 @@ let () =
   let vb1 = GPack.vbox ~packing:(hbox#pack ~expand:false) () in
   let fr = GBin.frame ~border_width:3 ~shadow_type:`IN
       ~packing:(vb1#pack ~expand:false) () in
-  let input = { name = "lat140105.puz"; format = "acrosslite_binary" } in
+  let input = { name = "1ac.puz"; format = "acrosslite_binary" } in
   let xw = File.read input in
   let xword = new xw_widget ~packing:fr#add ~xw:xw () in
   let clues = new clues_widget ~packing:hbox#add ~xw () in

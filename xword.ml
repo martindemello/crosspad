@@ -152,8 +152,12 @@ let delete_letter xw x y =
   | Black -> false
   | _ -> set_cell xw x y Empty; true
 
-(* Get metadata *)
+(* Get and set metadata *)
+
 let metadata xw k =
   match List.Assoc.find xw.metadata k with
   | Some v -> v
   | None -> ""
+
+let set_metadata xw k v =
+  xw.metadata <- (k, v) :: xw.metadata
