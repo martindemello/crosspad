@@ -1,13 +1,15 @@
+INCLUDES=-I src -I src/plugins/aclite
+
 all: gtk
 
 tk:
-	ocamlbuild -use-ocamlfind -I plugins/aclite frontend/tkgui.native
+	ocamlbuild -use-ocamlfind $(INCLUDES) src/frontend/tkgui.native
 
 gtk:
-	ocamlbuild -use-ocamlfind -I plugins/aclite frontend/gtkgui.native
+	ocamlbuild -use-ocamlfind $(INCLUDES) src/frontend/gtkgui.native
 
 cli:
-	ocamlbuild -use-ocamlfind -I plugins/aclite frontend/cli.native
+	ocamlbuild -use-ocamlfind $(INCLUDES) src/frontend/cli.native
 
 clean:
 	ocamlbuild -clean

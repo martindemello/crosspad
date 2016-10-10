@@ -7,8 +7,8 @@ true: package(core_kernel), package(unix), package(str)
 <**/*_match.*>: package(mikmatch_pcre), syntax(camlp4o)
 
 # packages used by plugins, linked when compiling the frontend
-<frontend/*>: package(bitstring), package(mikmatch_pcre)
+<src/frontend/*>: package(bitstring), package(mikmatch_pcre)
 
 # frontend
-<frontend/gtkgui.*>: package(lablgtk2), package(lablgtk2.auto-init)
-<frontend/tkgui.*>: package(labltk)
+<src/frontend/gtkgui.*>: package(lablgtk2), package(lablgtk2.auto-init)
+<src/frontend/tkgui.*>: package(labltk)
