@@ -1,0 +1,11 @@
+S .
+S plugins
+S plugins/aclite
+S frontend
+
+B _build
+B _build/plugins
+B _build/plugins/aclite
+B _build/frontend
+
+PKG core

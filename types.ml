@@ -54,9 +54,22 @@ type xword = {
   mutable metadata : (metadata_key * string) list;
 }
 
+(* I/O formats for conversion *)
+
 type file = {
   name : string;
   format : string;
+}
+
+type converter_input = {
+  data : string;
+  input_format : string;
+  output_format : string;
+}
+
+type converter_output = {
+  output : string;
+  error: string;
 }
 
 exception PuzzleFormatError of string
