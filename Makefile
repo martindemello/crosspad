@@ -1,4 +1,4 @@
-INCLUDES=-I src -I src/plugins/aclite
+INCLUDES=-I src -I src/plugins/aclite -I src/plugins/json
 
 all: gtk
 

@@ -1,11 +1,13 @@
 S src
 S src/plugins
 S src/plugins/aclite
+S src/plugins/json
 S src/frontend
 
 B _build/src
 B _build/src/plugins
 B _build/src/plugins/aclite
+B _build/src/plugins/json
 B _build/src/frontend
 
-PKG core
+PKG core yojson

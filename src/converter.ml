@@ -2,12 +2,14 @@ open Types
 open Core_kernel.Std
 
 let readers = [
-  "acrosslite_binary", (module Puz : READER)
+  "acrosslite_binary", (module Puz : READER);
+  "json", (module Json : READER)
 ]
 
 let writers = [
   "acrosslite_binary", (module Puz : WRITER);
-  "acrosslite_text", (module Ac_text : WRITER)
+  "acrosslite_text", (module Ac_text : WRITER);
+  "json", (module Json : WRITER)
 ]
 
 let get_reader format = List.Assoc.find readers format
