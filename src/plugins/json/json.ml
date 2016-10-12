@@ -1,6 +1,6 @@
-open Core_kernel.Std
 open Printf
 open Types
+open Utils
 
 open Yojson.Safe
 
@@ -39,7 +39,7 @@ let json_cell_list xw =
 
 let json_grid xw =
   let cells = json_cell_list xw in
-  let str xs = List.map ~f:(fun x -> `String x) xs in
+  let str xs = List.map (fun x -> `String x) xs in
   `Assoc [
     "rows", `Int xw.rows;
     "cols", `Int xw.cols;
@@ -68,7 +68,7 @@ type input_xword = {
 }
 
 let rebus_of_string s =
-  let c = Char.to_string s.[0] in
+  let c = string_of_char s.[0] in
   Rebus { symbol = 0; solution = s; display_char = c }
 
 let cell_of_string s = match s with
@@ -85,7 +85,7 @@ let unpack_cell_fields (js : (string * json) list) =
     | "contents", `String s -> { cell with contents = s }
     | _ -> raise (PuzzleFormatError "Malformed json")
   in
-  List.fold_left ~init:cell ~f:process_field js
+  List.fold_left process_field cell js
 
 let unpack_cell (j : json) =
   match j with
@@ -103,20 +103,20 @@ let unpack_toplevel (js : (string * json) list) =
     | "rows", `Int r -> {xw with rows = r}
     | "cols", `Int c -> {xw with cols = c}
     | "cells", `List cs -> begin
-        let cells = List.map ~f:unpack_cell cs in
+        let cells = List.map unpack_cell cs in
         { xw with cells = cells }
       end
     | "across", `List cs -> begin
-        let clues = List.map ~f:unpack_clue cs in
+        let clues = List.map unpack_clue cs in
         { xw with across = clues }
       end
     | "down", `List cs -> begin
-        let clues = List.map ~f:unpack_clue cs in
+        let clues = List.map unpack_clue cs in
         { xw with down = clues }
       end
     | _ -> raise (PuzzleFormatError "Malformed json")
   in
-  List.fold_left ~init:xw ~f:process_field js
+  List.fold_left process_field xw js
 
 let unpack_json (j : json) =
   match j with
@@ -127,7 +127,7 @@ let to_xword input =
   let xw = Xword.make input.rows input.cols in
   let xw = { xw with clues = { across = input.across; down = input.down } } in
   let set c = Xword.set_cell xw c.x c.y (cell_of_string c.contents) in
-  List.iter ~f:set input.cells;
+  List.iter set input.cells;
   xw
 
 let read data =

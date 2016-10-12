@@ -1,4 +1,3 @@
-open Core_kernel.Std
 open Puz_types
 open Mikmatch
 

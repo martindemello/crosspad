@@ -1,3 +1,5 @@
+module SMap = Map.Make(String)
+
 type letter = string
 
 type rebus = {

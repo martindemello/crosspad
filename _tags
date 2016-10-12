@@ -1,6 +1,6 @@
 true: thread,debug
 
-true: package(core_kernel), package(unix), package(str), package(yojson)
+true: package(unix), package(str), package(yojson), package(containers)
 
 # preprocessing
 <**/*_bin.*>: package(bitstring.syntax), syntax(bitstring)

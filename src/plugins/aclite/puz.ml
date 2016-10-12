@@ -1,6 +1,6 @@
-open Core_kernel.Std
 open Printf
 open Types
+open Utils
 open Puz_types
 open Puz_utils
 
@@ -20,7 +20,7 @@ let parse_extension puz ex =
       let unpack x = (x#symbol, x#word) in
       match Puz_match.match_rtbl ex.data with
       | None -> fail_read ex
-      | Some xs -> ("RTBL", `RTBL (List.map xs unpack))
+      | Some xs -> ("RTBL", `RTBL (List.map unpack xs))
     end
   | "GRBS" -> begin
       match is_byte_grid ex.data with
@@ -109,7 +109,7 @@ let read_puzzle data =
 let cell_of_char c = match c with
   | '.' -> Black
   | ' ' -> Empty
-  | c  -> Letter (Char.to_string c)
+  | c  -> Letter (string_of_char c)
 
 let unpack_clues xw puzzle =
   let clues = Array.of_list puzzle.clues in
@@ -135,22 +135,22 @@ let unpack_solution xw puzzle =
 
 let unpack_rebus xw grbs rtbl =
   Xword.iteri xw (fun i x y c ->
-      let n = Char.to_int grbs.[i] in
+      let n = Char.code grbs.[i] in
       if n > 0 then begin
         let n = n - 1 in
-        let s = match List.Assoc.find rtbl n with
+        let s = match list_assoc n rtbl with
           | Some str -> str
           | None -> raise (PuzzleFormatError "Invalid rebus extension")
         in
-        let display_char = String.sub s ~pos:0 ~len:1 in
+        let display_char = String.sub s 0 1 in
         let r = Rebus { symbol = n; solution = s; display_char } in
         Xword.set_cell xw x y r
       end
     )
 
 let unpack_extensions xw puzzle =
-  let ex = List.map puzzle.extensions ~f:(parse_extension puzzle) in
-  let get_ex = List.Assoc.find ex in
+  let ex = List.map (parse_extension puzzle) puzzle.extensions in
+  let get_ex = assoc_in_list ex in
   match get_ex "GRBS", get_ex "RTBL" with
   | Some (`GRBS grbs), Some (`RTBL rtbl) -> unpack_rebus xw grbs rtbl
   | _ -> () (* if we don't have both rtbl and grbs do nothing *)
@@ -174,13 +174,13 @@ let xword_of_puzzle puzzle =
 (* xword -> puzzle conversion *)
 let pack_clues xw =
   let cmp (x, _) (y, _) = compare x y in
-  let hd, tl = List.hd_exn, List.tl_exn in
+  let hd, tl = List.hd, List.tl in
   let ac, dn = Xword.clue_numbers xw in
   let nums = List.append
-      (List.map ~f:(fun x -> (x, `Ac)) ac)
-      (List.map ~f:(fun x -> (x, `Dn)) dn)
+      (List.map (fun x -> (x, `Ac)) ac)
+      (List.map (fun x -> (x, `Dn)) dn)
   in
-  let nums = List.sort ~cmp nums in
+  let nums = List.sort cmp nums in
   let rec weave ns a d out = match ns with
     | [] -> List.rev out
     | (x, `Ac) :: xs -> weave xs (tl a) d ((hd a) :: out)
@@ -193,13 +193,13 @@ let pack_grid xw ~fmt = Xword.format_grid xw ~charsep:"" ~rowsep:"" ~fmt
 
 let pack_rebus xw =
   let rtbl, _ = Xword.encode_rebus xw in
-  if List.is_empty rtbl then [] else begin
+  if is_empty_list rtbl then [] else begin
     let fmt = function
-      | Rebus r -> Char.to_string (Char.of_int_exn (r.symbol + 1))
+      | Rebus r -> string_of_char (Char.chr (r.symbol + 1))
       | _ -> "\000"
     in
     let grbs = pack_grid xw ~fmt in
-    List.map ~f:pack_extension ["GRBS", `GRBS grbs; "RTBL", `RTBL rtbl]
+    List.map pack_extension ["GRBS", `GRBS grbs; "RTBL", `RTBL rtbl]
   end
 
 (* TODO: non-rebus extensions *)

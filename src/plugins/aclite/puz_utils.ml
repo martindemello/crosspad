@@ -1,6 +1,6 @@
-open Core_kernel.Std
 open Puz_types
 open Types
+open Utils
 
 (* CRC checksum for binary format *)
 class checksum ~seed =
@@ -13,13 +13,13 @@ class checksum ~seed =
       let low = sum land 0x001 in
       sum <- sum lsr 1;
       if low = 1 then sum <- sum lor 0x8000;
-      sum <- (sum + (Char.to_int b)) land 0xffff
+      sum <- (sum + (Char.code b)) land 0xffff
 
     method add_string s =
-      String.iter s self#add_char
+      String.iter self#add_char s
 
     method add_string_0 s =
-      if not (String.is_empty s) then begin
+      if not (is_empty_string s) then begin
         self#add_string s;
         self#add_char '\000'
       end
@@ -43,14 +43,13 @@ class string_io _string =
       String.sub str (pos - n) n
 
     method read_string =
-      let i = String.index_from str pos '\000' in
-      match i with
-      | Some i -> begin
-          let s = String.sub str pos (i - pos) in
-          pos <- i + 1;
-          s
-        end
-      | None -> raise (PuzzleFormatError "Could not read string")
+      try
+        let i = String.index_from str pos '\000' in
+        let s = String.sub str pos (i - pos) in
+        pos <- i + 1;
+        s
+      with
+      | Not_found -> raise (PuzzleFormatError "Could not read string")
 
   end
 
@@ -60,8 +59,8 @@ let s0 s = s ^ "\000"
 
 let pad0 s len = s ^ (String.make (len - (String.length s)) '\000')
 
-let array_of_string s = Array.of_list (String.to_list s)
+let array_of_string s = CCString.to_array s
 
-let int32_of_char c = Char.to_int c |> Int32.of_int_exn
+let int32_of_char c = Char.code c |> Int32.of_int
 
-let concat_map ?sep:(sep="") ~f xs = String.concat ~sep (List.map ~f xs)
+let concat_map ?sep:(sep="") ~f xs = String.concat sep (List.map f xs)

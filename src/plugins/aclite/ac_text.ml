@@ -1,6 +1,6 @@
-open Core_kernel.Std
 open Printf
 open Types
+open Utils
 
 let write_solution xw =
   let fmt = function
@@ -11,18 +11,18 @@ let write_solution xw =
   Xword.format_grid xw ~fmt ~charsep:"" ~rowsep:"\n"
 
 let write_clues cs =
-  String.concat ~sep:"\n" cs 
+  unlines cs 
 
 let write_rebus xw =
   let rtbl, rmap = Xword.encode_rebus xw in
   let f kv =
     let (sym, sol) = kv in
-    match Map.find rmap sol with
+    match smap_find sol rmap with
     | Some r -> Printf.sprintf "%d:%s:%s" sym r.solution r.display_char
     | None -> raise (PuzzleFormatError "Something went wrong in rebus encoding")
   in
-  let rs = List.map ~f rtbl in
-  String.concat ~sep:"\n" rs
+  let rs = List.map f rtbl in
+  unlines rs
 
 let write xw =
   let meta = Xword.metadata xw in
@@ -39,16 +39,16 @@ let write xw =
     "DOWN", write_clues xw.clues.down;
     "NOTEPAD", meta `Notes
   ] in
-  let sections = List.filter ~f:(fun (k, v) ->
-      not (String.is_empty v)) sections in
-  let ss = List.map ~f:(fun (k, v) ->
+  let sections = List.filter (fun (k, v) ->
+      not (is_empty_string v)) sections in
+  let ss = List.map (fun (k, v) ->
       Printf.sprintf "<%s>\n%s" k v) sections in
-  (String.concat ~sep:"\n" ss) ^ "\n"
+  (unlines ss) ^ "\n"
 
 let read_version s = function
-  | s when phys_equal s "<ACROSS PUZZLE>" -> 1
-  | s when phys_equal s "<ACROSS PUZZLE V2>" -> 2
-  | s when phys_equal s "<ACROSS DEBUG>" -> 3
+  | s when s = "<ACROSS PUZZLE>" -> 1
+  | s when s = "<ACROSS PUZZLE V2>" -> 2
+  | s when s = "<ACROSS DEBUG>" -> 3
   | _ -> raise (PuzzleFormatError "Could not read AcrossLite version header")
 
 let sections = [
@@ -63,7 +63,7 @@ let sections = [
   ("DOWN", `Down);
 ]
 
-let parse_section s = List.Assoc.find sections s
+let parse_section s = list_assoc s sections
 
 let match_text_section s = match parse_section s with
   None -> false
@@ -73,7 +73,7 @@ let match_text_section s = match parse_section s with
       |_ -> false
     end
 
-let read_section lines =
+let read_section (lines : string list) =
   let header :: rest = lines in
   let section = parse_section header in
   match section with
@@ -92,10 +92,10 @@ let get_metadata sections =
    *)
 
 let read data =
-  let v :: lines = String.split_lines data in
+  let v :: lines = split_lines data in
   let version = read_version v in
-  let sections = List.group lines ~break:(fun x y ->
-     Option.is_some (parse_section x))
+  let sections = list_group lines ~break:(fun x y ->
+     is_some (parse_section x))
   in
-  let sections = List.map ~f:read_section sections in
+  let sections = List.map read_section sections in
   sections

@@ -1,5 +1,5 @@
 open Types
-open Core_kernel.Std
+open Utils
 
 let readers = [
   "acrosslite_binary", (module Puz : READER);
@@ -12,9 +12,9 @@ let writers = [
   "json", (module Json : WRITER)
 ]
 
-let get_reader format = List.Assoc.find readers format
+let get_reader format = assoc_in_list readers format
 
-let get_writer format = List.Assoc.find writers format
+let get_writer format = assoc_in_list writers format
 
 let convert input =
   let reader = get_reader input.input_format in

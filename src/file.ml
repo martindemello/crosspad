@@ -1,9 +1,8 @@
 open Types
 open Converter
-open Core_kernel.Std
 
 let read file =
-  let data = In_channel.read_all file.name in
+  let data = CCIO.(with_in file.name read_all) in
   let reader = get_reader file.format in
   match reader with
   | Some reader -> let (module R) = reader in R.read data
@@ -15,4 +14,4 @@ let write file xw =
   | Some writer -> let (module W) = writer in W.write xw
   | None -> "" (* TODO: Handle the error *)
   in
-  Out_channel.write_all file.name data
+  CCIO.(with_out file.name (fun oc -> write_line oc data))

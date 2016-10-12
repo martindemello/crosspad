@@ -1,4 +1,3 @@
-open Core_kernel.Std
 open Puz_types
 open Puz_utils
 
@@ -82,7 +81,7 @@ let text_checksum p seed =
   c#add_string_0 p.title;
   c#add_string_0 p.author;
   c#add_string_0 p.copyright;
-  List.iter p.clues (fun x -> c#add_string x);
+  List.iter (fun x -> c#add_string x) p.clues;
   if (p.version = "1.3") then c#add_string_0 p.notes;
   c#sum
 
@@ -94,8 +93,8 @@ let global_checksum p =
   c#sum
 
 let magic_checksums p =
-  let mask = Array.map ~f:int32_of_char (array_of_string "ICHEATED") in
-  let sums = List.map ~f:Int32.of_int_exn [
+  let mask = Array.map int32_of_char (array_of_string "ICHEATED") in
+  let sums = List.map Int32.of_int [
     text_checksum p 0;
     checksum_of_string p.fill;
     checksum_of_string p.solution;
@@ -103,11 +102,11 @@ let magic_checksums p =
   ] in
   let l, h = ref 0l, ref 0l in
   let (@<), (@>) = Int32.(shift_left, shift_right) in
-  let (@|), (@&), (@^) = Int32.(bit_or, bit_and, bit_xor) in
-  List.iteri sums (fun i x ->
+  let (@|), (@&), (@^) = Int32.(logor, logand, logxor) in
+  List.iteri (fun i x ->
       l := (!l @< 8) @| (mask.(3 - i) @^ (x @& 0xffl));
       h := (!h @< 8) @| (mask.(7 - i) @^ (x @> 8));
-    );
+    ) sums;
   (!l, !h)
 
 type checksums = {

@@ -1,5 +1,5 @@
 open Types
-open Core_kernel.Std
+open Utils
 
 let make rows cols =
   let sq = { cell = Empty; num = 0 } in
@@ -74,19 +74,19 @@ let renumber ?(on_ac=ignore) ?(on_dn=ignore) xw =
  *  a map of {solution -> Rebus}
  *)
 let encode_rebus xw =
-  let m = ref (String.Map.empty) in
+  let m = ref SMap.empty in
   let l = ref [] in
   let k = ref 0 in
   iteri xw (fun i x y c ->
       match c with
       | Rebus r -> begin
-          match Map.find !m r.solution with
+          match smap_find r.solution !m with
           | Some sr -> set_cell xw x y (Rebus sr)
           | None -> begin
               let nr = { r with symbol = !k } in
               k := !k + 1;
               set_cell xw x y (Rebus nr);
-              m := Map.add !m ~key:nr.solution ~data:nr;
+              m := SMap.add nr.solution nr !m;
               l := (nr.symbol, nr.solution) :: !l
             end
         end
@@ -132,9 +132,9 @@ let inspect_clues xw =
   let ac, dn = clue_numbers xw in
   let print_clue i clue = Printf.printf "%d. %s\n" i clue in
   print_endline "Across";
-  List.iter2_exn ac xw.clues.across print_clue;
+  List.iter2 print_clue ac xw.clues.across;
   print_endline "Down";
-  List.iter2_exn dn xw.clues.down print_clue
+  List.iter2 print_clue dn xw.clues.down
 
 let inspect xw =
   inspect_grid xw;
@@ -155,7 +155,7 @@ let delete_letter xw x y =
 (* Get and set metadata *)
 
 let metadata xw k =
-  match List.Assoc.find xw.metadata k with
+  match list_assoc k xw.metadata with
   | Some v -> v
   | None -> ""
 

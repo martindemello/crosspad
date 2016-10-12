@@ -1,5 +1,4 @@
 open Types
-open Core_kernel.Std
 
 let () =
   let input = { name = "test.txt"; format = "json" } in
