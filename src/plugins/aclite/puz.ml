@@ -17,10 +17,9 @@ let parse_extension puz ex =
   let drop_last s = String.sub s 0 (last s) in
   match ex.section with
   | "RTBL" -> begin
-      let unpack x = (x#symbol, x#word) in
       match Puz_match.match_rtbl ex.data with
       | None -> fail_read ex
-      | Some xs -> ("RTBL", `RTBL (List.map unpack xs))
+      | Some xs -> ("RTBL", `RTBL xs)
     end
   | "GRBS" -> begin
       match is_byte_grid ex.data with

@@ -1,13 +1,12 @@
 true: thread,debug
 
-true: package(unix), package(str), package(yojson), package(containers)
+true: package(unix), package(str), package(yojson), package(containers), package(angstrom)
 
 # preprocessing
 <**/*_bin.*>: package(bitstring.syntax), syntax(bitstring)
-<**/*_match.*>: package(mikmatch_pcre), syntax(camlp4o)
 
 # packages used by plugins, linked when compiling the frontend
-<src/frontend/*>: package(bitstring), package(mikmatch_pcre)
+<src/frontend/*>: package(bitstring)
 
 # frontend
 <src/frontend/gtkgui.*>: package(lablgtk2), package(lablgtk2.auto-init)
