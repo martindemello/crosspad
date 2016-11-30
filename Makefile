@@ -11,5 +11,14 @@ gtk:
 cli:
 	ocamlbuild -use-ocamlfind $(INCLUDES) src/frontend/cli.native
 
+web:
+	ocamlbuild -use-ocamlfind $(INCLUDES) src/frontend/opium_web.native
+
+a:
+	ocamlbuild -use-ocamlfind $(INCLUDES) src/plugins/aclite/puz_bit.native
+
+b:
+	ocamlbuild -use-ocamlfind $(INCLUDES) src/plugins/aclite/test_bit.native
+
 clean:
 	ocamlbuild -clean

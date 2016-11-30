@@ -1,9 +1,10 @@
 true: thread,debug
 
-true: package(unix), package(str), package(yojson), package(containers), package(angstrom)
+true: package(unix), package(str), package(yojson), package(containers), package(angstrom), package(bitstring), package(ezjsonm)
 
 # preprocessing
 <**/*_bin.*>: package(bitstring.syntax), syntax(bitstring)
+<**/*_bit.*>: package(ppx_bitstring)
 
 # packages used by plugins, linked when compiling the frontend
 <src/frontend/*>: package(bitstring)
@@ -11,3 +12,4 @@ true: package(unix), package(str), package(yojson), package(containers), package
 # frontend
 <src/frontend/gtkgui.*>: package(lablgtk2), package(lablgtk2.auto-init)
 <src/frontend/tkgui.*>: package(labltk)
+<src/frontend/opium_web.*>: package(opium.unix)
