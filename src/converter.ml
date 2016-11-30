@@ -12,25 +12,31 @@ let writers = [
   "json", (module Json : WRITER)
 ]
 
-let get_reader format = assoc_in_list readers format
+let get_reader format =
+  match assoc_in_list readers format with
+   | Some r -> Ok r
+   | None -> Error ("No reader for " ^ format)
 
-let get_writer format = assoc_in_list writers format
+let get_writer format =
+  match assoc_in_list writers format with
+   | Some w -> Ok w
+   | None -> Error ("No writer for " ^ format)
+
+let read format data =
+  let apply r =
+    let (module R : READER) = r in
+    R.read data
+  in
+  CCResult.map apply (get_reader format)
+
+let write format xw =
+  let apply w =
+    let (module W : WRITER) = w in
+    W.write xw
+  in
+  CCResult.map apply (get_writer format)
 
 let convert input =
-  let reader = get_reader input.input_format in
-  let writer = get_writer input.input_format in
-  match (reader, writer) with
-  | Some r, Some w -> begin
-      let (module R) = r in
-      let (module W) = w in
-      let xw = R.read input.data in
-      let out = W.write xw in
-      { output = out; error = "" }
-    end
-  | None, _ -> { output = "";
-                 error = "No reader available for " ^ input.input_format }
-  
-  | _, None -> { output = "";
-                 error = "No writer available for " ^ input.output_format }
-
-
+  let open CCResult.Infix in
+  read input.input_format input.data >>= (fun xw ->
+      write input.output_format xw)

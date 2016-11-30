@@ -69,11 +69,6 @@ type converter_input = {
   output_format : string;
 }
 
-type converter_output = {
-  output : string;
-  error: string;
-}
-
 exception PuzzleFormatError of string
 
 (* Plugin interfaces *)
