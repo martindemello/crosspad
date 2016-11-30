@@ -3,6 +3,8 @@ open Types
 open Cursor
 open Utils
 
+[@@@ ocaml.warning "-10"]
+
 let utf8 s = Glib.Convert.convert s "UTF-8" "ISO-8859-1"
 
 let check_cache ~cond ~create ~destroy = function
@@ -126,7 +128,7 @@ class xw_widget ~xw ?packing ?show () =
     method draw =
       let {Gtk.x=x0; y=y0; width=width; height=height} =
         da#misc#allocation in
-      let size = (min width height) * 49 / 50 in
+      let _size = (min width height) * 49 / 50 in
       let dr = check_cache pixmap
           ~cond:(fun pm -> pm#size = (width, height))
           ~destroy:(fun pm -> Gdk.Pixmap.destroy pm#pixmap)
@@ -225,8 +227,8 @@ class clue_widget ~xw ~dir ?packing ?show () =
 
 class clues_widget ~xw ?packing ?show () =
   let vbox = GPack.vbox ?packing ?show () in
-  let ac = new clue_widget ~xw ~dir:`Across ~packing:vbox#add ?show () in
-  let dn = new clue_widget ~xw ~dir:`Down ~packing:vbox#add ?show () in
+  let _ac = new clue_widget ~xw ~dir:`Across ~packing:vbox#add ?show () in
+  let _dn = new clue_widget ~xw ~dir:`Down ~packing:vbox#add ?show () in
   object(self)
     inherit GObj.widget_full vbox#as_widget
   end
@@ -264,7 +266,7 @@ class metadata_widget ~xw ?packing ?show () =
 
 
 let () =
-  let locale = GMain.init ~setlocale:true () in
+  let _locale = GMain.init ~setlocale:true () in
   let w = GWindow.window () in
   w#connect#destroy ~callback:GMain.quit;
   let vbox = GPack.vbox ~packing:w#add () in
@@ -275,9 +277,9 @@ let () =
   let fname = Sys.argv.(1) in
   let input = { name = fname; format = "acrosslite_binary" } in
   let xw = File.read input in
-  let xword = new xw_widget ~packing:fr#add ~xw:xw () in
-  let clues = new clues_widget ~packing:hbox#add ~xw () in
-  let meta = new metadata_widget ~packing:vb1#add ~xw () in
+  let _xword = new xw_widget ~packing:fr#add ~xw:xw () in
+  let _clues = new clues_widget ~packing:hbox#add ~xw () in
+  let _meta = new metadata_widget ~packing:vb1#add ~xw () in
   let quit = GButton.button ~label:"Quit" ~packing:vbox#pack () in
   quit#connect#clicked ~callback:GMain.quit;
   w#show ();

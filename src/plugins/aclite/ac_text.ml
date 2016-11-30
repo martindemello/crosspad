@@ -27,7 +27,6 @@ let write_rebus xw =
 let write xw =
   let meta = Xword.metadata xw in
   let size = Printf.sprintf "%dx%d" xw.rows xw.cols in
-  let grid = write_solution xw in 
   let sections = [
     "TITLE", meta `Title;
     "AUTHOR", meta `Author;
@@ -74,7 +73,7 @@ let match_text_section s = match parse_section s with
     end
 
 let read_section (lines : string list) =
-  let header :: rest = lines in
+  let [@ ocaml.warning "-8"] header :: rest = lines in
   let section = parse_section header in
   match section with
   | None -> raise (PuzzleFormatError ("Unrecognised section " ^ header))
@@ -92,8 +91,8 @@ let get_metadata sections =
    *)
 
 let read data =
-  let v :: lines = split_lines data in
-  let version = read_version v in
+  let [@ ocaml.warning "-8"] v :: lines = split_lines data in
+  let _version = read_version v in
   let sections = list_group lines ~break:(fun x y ->
      is_some (parse_section x))
   in
