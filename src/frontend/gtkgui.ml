@@ -77,7 +77,7 @@ class xw_widget ~xw ?packing ?show () =
       self#draw
 
     method set_letter c =
-      let s = Char.uppercase c |> String.make 1 in
+      let s = Char.uppercase_ascii c |> String.make 1 in
       Xword.set_cell xw cursor.x cursor.y (Letter s);
       self#move_cursor ~wrap:false (dir :> direction)
 
