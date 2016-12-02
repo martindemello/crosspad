@@ -2,15 +2,21 @@ open Types
 open Utils
 
 let readers = [
-  "acrosslite_binary", (module Puz : READER);
+  "across-lite-binary", (module Puz : READER);
   "json", (module Json : READER)
 ]
 
 let writers = [
-  "acrosslite_binary", (module Puz : WRITER);
-  "acrosslite_text", (module Ac_text : WRITER);
+  "across-lite-binary", (module Puz : WRITER);
+  "across-lite-text", (module Ac_text : WRITER);
   "json", (module Json : WRITER)
 ]
+
+let keys xs = List.map fst xs |> List.sort compare
+
+let reader_list = keys readers
+
+let writer_list = keys writers
 
 let get_reader format =
   match assoc_in_list readers format with

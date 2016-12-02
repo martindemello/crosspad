@@ -10,4 +10,4 @@ B _build/src/plugins/aclite
 B _build/src/plugins/json
 B _build/src/frontend
 
-PKG yojson containers bitstring angstrom opium lablgtk2
+PKG yojson containers bitstring angstrom opium lablgtk2 cmdliner
