@@ -1,5 +1,5 @@
 open Printf
-open Types
+open Typedefs
 open Utils
 open Puz_types
 open Puz_utils

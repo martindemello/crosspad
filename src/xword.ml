@@ -1,4 +1,4 @@
-open Types
+open Typedefs
 open Utils
 
 let make rows cols =

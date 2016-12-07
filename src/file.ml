@@ -1,5 +1,5 @@
-open Types
 open Converter
+open Typedefs
 
 let read file =
   let data = CCIO.(with_in file.name read_all) in

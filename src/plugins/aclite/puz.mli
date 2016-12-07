@@ -1,2 +1,2 @@
-val read : string -> Types.xword
-val write : Types.xword -> string
+val read : string -> Typedefs.xword
+val write : Typedefs.xword -> string

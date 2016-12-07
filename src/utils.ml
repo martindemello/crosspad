@@ -1,4 +1,4 @@
-open Types
+open Typedefs
 
 let string_of_metadata_key = function
 | `Copyright -> "Copyright"

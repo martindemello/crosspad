@@ -12,5 +12,5 @@ true: package(unix), package(str), package(yojson), package(containers), package
 # frontend
 <src/frontend/gtkgui.*>: package(lablgtk2), package(lablgtk2.auto-init)
 <src/frontend/tkgui.*>: package(labltk)
-<src/frontend/opium_web.*>: package(opium.unix)
+<src/frontend/opium_web.*>: package(opium.unix), package(multipart-form-data)
 <src/frontend/cli.*>: package(cmdliner)

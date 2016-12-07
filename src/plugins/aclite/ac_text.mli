@@ -1,1 +1,1 @@
-val write : Types.xword -> string
+val write : Typedefs.xword -> string

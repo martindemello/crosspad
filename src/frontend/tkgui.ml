@@ -1,6 +1,6 @@
 open Tk
 open StdLabels
-open Types
+open Typedefs
 open Cursor
 
 let top = openTk () ;;

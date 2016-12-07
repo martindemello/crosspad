@@ -1,5 +1,5 @@
 open Printf
-open Types
+open Typedefs
 open Utils
 
 open Ezjsonm
@@ -7,8 +7,8 @@ open Ezjsonm
 (*
  * cell = { x : int, y : int, contents : string }
  *
- * xword = { rows : int, 
- *           cols : int, 
+ * xword = { rows : int,
+ *           cols : int,
  *           cells : [cell],
  *           across : [string]
  *           down : [string]
@@ -39,7 +39,7 @@ let json_cell_list xw =
   done;
   List.rev !out
 
-let json_grid xw =
+let write_json xw =
   let cells = json_cell_list xw in
   dict [
     "rows", int xw.rows;
@@ -49,8 +49,12 @@ let json_grid xw =
     "down", list string xw.clues.down
   ]
 
+let error err =
+  let open Ezjsonm in
+  dict [ "error", (string err) ]
+
 let write xword =
-  json_grid xword |> to_string 
+  write_json xword |> to_string
 
 (* Reader separated into json_reader.ml because it uses Yojson rather than Jsonm *)
 let read data = Json_reader.read data

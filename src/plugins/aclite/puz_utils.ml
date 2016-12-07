@@ -1,5 +1,5 @@
 open Puz_types
-open Types
+open Typedefs
 open Utils
 
 (* CRC checksum for binary format *)

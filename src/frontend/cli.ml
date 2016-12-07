@@ -1,7 +1,7 @@
 open Cmdliner
 open Printf
 
-open Types
+open Typedefs
 
 let convert in_format out_format in_file out_file =
   let input = { name = in_file; format = in_format } in

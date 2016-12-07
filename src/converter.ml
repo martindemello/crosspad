@@ -1,4 +1,4 @@
-open Types
+open Typedefs
 open Utils
 
 let readers = [
@@ -33,16 +33,33 @@ let read format data =
     let (module R : READER) = r in
     R.read data
   in
-  CCResult.map apply (get_reader format)
+  try
+    CCResult.map apply (get_reader format)
+  with
+  | PuzzleFormatError e -> Error e
 
 let write format xw =
   let apply w =
     let (module W : WRITER) = w in
     W.write xw
   in
-  CCResult.map apply (get_writer format)
+  try
+    CCResult.map apply (get_writer format)
+  with
+  | PuzzleFormatError e -> Error e
 
 let convert input =
   let open CCResult.Infix in
-  read input.input_format input.data >>= (fun xw ->
-      write input.output_format xw)
+  try
+    read input.input_format input.data
+        >>= write input.output_format
+  with
+  | PuzzleFormatError e -> Error e
+
+let to_json input =
+  let open CCResult.Infix in
+  try
+    read input.input_format input.data
+    >|= Json.write_json
+  with
+  | PuzzleFormatError e -> Ok (Json.error e)
