@@ -1,24 +1,41 @@
-INCLUDES=-I src -I src/plugins/aclite -I src/plugins/json
+# OASIS_START
+# DO NOT EDIT (digest: a3c674b4239234cbbe53afe090018954)
 
-all: gtk
+SETUP = ocaml setup.ml
 
-tk:
-	ocamlbuild -use-ocamlfind $(INCLUDES) src/frontend/tkgui.native
+build: setup.data
+	$(SETUP) -build $(BUILDFLAGS)
 
-gtk:
-	ocamlbuild -use-ocamlfind $(INCLUDES) src/frontend/gtkgui.native
+doc: setup.data build
+	$(SETUP) -doc $(DOCFLAGS)
 
-cli:
-	ocamlbuild -use-ocamlfind $(INCLUDES) src/frontend/cli.native
+test: setup.data build
+	$(SETUP) -test $(TESTFLAGS)
 
-web:
-	ocamlbuild -use-ocamlfind $(INCLUDES) src/frontend/opium_web.native
+all:
+	$(SETUP) -all $(ALLFLAGS)
 
-a:
-	ocamlbuild -use-ocamlfind $(INCLUDES) src/plugins/aclite/puz_bit.native
+install: setup.data
+	$(SETUP) -install $(INSTALLFLAGS)
 
-b:
-	ocamlbuild -use-ocamlfind $(INCLUDES) src/plugins/aclite/test_bit.native
+uninstall: setup.data
+	$(SETUP) -uninstall $(UNINSTALLFLAGS)
+
+reinstall: setup.data
+	$(SETUP) -reinstall $(REINSTALLFLAGS)
 
 clean:
-	ocamlbuild -clean
+	$(SETUP) -clean $(CLEANFLAGS)
+
+distclean:
+	$(SETUP) -distclean $(DISTCLEANFLAGS)
+
+setup.data:
+	$(SETUP) -configure $(CONFIGUREFLAGS)
+
+configure:
+	$(SETUP) -configure $(CONFIGUREFLAGS)
+
+.PHONY: build doc test all install uninstall reinstall clean distclean configure
+
+# OASIS_STOP

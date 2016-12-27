@@ -6,8 +6,8 @@ open Typedefs
 let convert in_format out_format in_file out_file =
   let input = { name = in_file; format = in_format } in
   let output = { name = out_file; format = out_format } in
-  let xw = File.read input in
-  File.write output xw
+  let xw = Converter.read_file input in
+  Converter.write_file output xw
 
 let display_format_list () =
   let show xs =

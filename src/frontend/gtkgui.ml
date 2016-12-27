@@ -275,8 +275,8 @@ let () =
   let fr = GBin.frame ~border_width:3 ~shadow_type:`IN
       ~packing:(vb1#pack ~expand:false) () in
   let fname = Sys.argv.(1) in
-  let input = { name = fname; format = "acrosslite_binary" } in
-  let xw = File.read input in
+  let input = { name = fname; format = "across-lite-binary" } in
+  let xw = Converter.read_file input in
   let _xword = new xw_widget ~packing:fr#add ~xw:xw () in
   let _clues = new clues_widget ~packing:hbox#add ~xw () in
   let _meta = new metadata_widget ~packing:vb1#add ~xw () in

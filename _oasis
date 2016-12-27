@@ -1,0 +1,68 @@
+OASISFormat: 0.4
+Name:        crosspad
+Version:     0.1
+Synopsis:    Crossword file format converter and viewer
+Authors:     Martin DeMello <martindemello@gmail.com>
+License:     MIT
+Plugins:     DevFiles (0.4), META (0.4)
+AlphaFeatures: source_patterns
+
+# ------------------------------------------------------------
+# Library
+# ------------------------------------------------------------
+
+Library xword
+  FindlibName: xword
+  BuildDepends:
+    angstrom,
+    containers,
+    ezjsonm,
+    str,
+    yojson
+  Path: src/xword
+  Install: true
+  BuildTools: ocamlbuild
+  Modules:
+    Xword,
+    Typedefs
+  InternalModules: Utils
+  CompiledObject: native
+
+Library converter
+  FindlibName: convert
+  FindlibParent: xword
+  BuildDepends:
+    angstrom,
+    bitstring,
+    containers,
+    xword
+  Path: src/converter
+  Install: true
+  BuildTools: ocamlbuild
+  Modules: Converter
+  CompiledObject: native
+
+Executable xwconvert
+  MainIs: cli.ml
+  BuildDepends:
+    containers,
+    cmdliner,
+    xword,
+    xword.convert
+  Path: src/frontend
+  Install: true
+  BuildTools: ocamlbuild
+  CompiledObject: native
+
+Executable crosspad
+  MainIs: gtkgui.ml
+  BuildDepends:
+    containers,
+    lablgtk2,
+    lablgtk2.auto-init,
+    xword,
+    xword.convert
+  Path: src/frontend
+  Install: true
+  BuildTools: ocamlbuild
+  CompiledObject: native

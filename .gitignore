@@ -2,3 +2,6 @@ _build
 *.native
 *.byte
 .*.swp
+*.docdir
+setup.data
+setup.log

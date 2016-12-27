@@ -1,0 +1,22 @@
+# OASIS_START
+# DO NOT EDIT (digest: 7be5907d95578850b409c0d7693d12f0)
+version = "0.1"
+description = "Crossword file format converter and viewer"
+requires = "angstrom containers ezjsonm str yojson"
+archive(byte) = "xword.cma"
+archive(byte, plugin) = "xword.cma"
+archive(native) = "xword.cmxa"
+archive(native, plugin) = "xword.cmxs"
+exists_if = "xword.cmxa"
+package "convert" (
+ version = "0.1"
+ description = "Crossword file format converter and viewer"
+ requires = "angstrom bitstring containers xword"
+ archive(byte) = "converter.cma"
+ archive(byte, plugin) = "converter.cma"
+ archive(native) = "converter.cmxa"
+ archive(native, plugin) = "converter.cmxs"
+ exists_if = "converter.cmxa"
+)
+# OASIS_STOP
+

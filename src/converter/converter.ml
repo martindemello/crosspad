@@ -63,3 +63,22 @@ let to_json input =
     >|= Json.write_json
   with
   | PuzzleFormatError e -> Ok (Json.error e)
+
+(*******************************************************
+ * File I/O
+ *******************************************************)
+
+let read_file file =
+  let data = CCIO.(with_in file.name read_all) in
+  let res = read file.format data in
+  match res with
+  | Ok xw -> xw
+  | _ -> Xword.make 15 15 (* TODO: Handle the error *)
+
+let write_file file xw =
+  let res = write file.format xw in
+  let data = match res with
+  | Ok data -> data
+  | _ -> "" (* TODO: Handle the error *)
+  in
+  CCIO.(with_out file.name (fun oc -> write_line oc data))

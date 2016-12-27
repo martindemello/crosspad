@@ -1,16 +1,68 @@
-true: thread,debug
-
-true: package(unix), package(str), package(yojson), package(containers), package(angstrom), package(bitstring), package(ezjsonm)
-
 # preprocessing
-<**/*_bin.*>: package(bitstring.syntax), syntax(bitstring)
-<**/*_bit.*>: package(ppx_bitstring)
+<**/*_bin.*>: pkg_bitstring.syntax, syntax(bitstring)
 
-# packages used by plugins, linked when compiling the frontend
-<src/frontend/*>: package(bitstring)
-
-# frontend
-<src/frontend/gtkgui.*>: package(lablgtk2), package(lablgtk2.auto-init)
-<src/frontend/tkgui.*>: package(labltk)
-<src/frontend/opium_web.*>: package(opium.unix), package(multipart-form-data)
-<src/frontend/cli.*>: package(cmdliner)
+# OASIS_START
+# DO NOT EDIT (digest: c37daa814c065ebb59a085fad043afb0)
+# Ignore VCS directories, you can use the same kind of rule outside
+# OASIS_START/STOP if you want to exclude directories that contains
+# useless stuff for the build process
+true: annot, bin_annot
+<**/.svn>: -traverse
+<**/.svn>: not_hygienic
+".bzr": -traverse
+".bzr": not_hygienic
+".hg": -traverse
+".hg": not_hygienic
+".git": -traverse
+".git": not_hygienic
+"_darcs": -traverse
+"_darcs": not_hygienic
+# Library xword
+"src/xword/xword.cmxs": use_xword
+<src/xword/*.ml{,i,y}>: pkg_angstrom
+<src/xword/*.ml{,i,y}>: pkg_containers
+<src/xword/*.ml{,i,y}>: pkg_ezjsonm
+<src/xword/*.ml{,i,y}>: pkg_str
+<src/xword/*.ml{,i,y}>: pkg_yojson
+# Library converter
+"src/converter/converter.cmxs": use_converter
+<src/converter/*.ml{,i,y}>: pkg_angstrom
+<src/converter/*.ml{,i,y}>: pkg_bitstring
+<src/converter/*.ml{,i,y}>: pkg_containers
+<src/converter/*.ml{,i,y}>: pkg_ezjsonm
+<src/converter/*.ml{,i,y}>: pkg_str
+<src/converter/*.ml{,i,y}>: pkg_yojson
+<src/converter/*.ml{,i,y}>: use_xword
+# Executable xwconvert
+"src/frontend/cli.native": pkg_angstrom
+"src/frontend/cli.native": pkg_bitstring
+"src/frontend/cli.native": pkg_cmdliner
+"src/frontend/cli.native": pkg_containers
+"src/frontend/cli.native": pkg_ezjsonm
+"src/frontend/cli.native": pkg_str
+"src/frontend/cli.native": pkg_yojson
+"src/frontend/cli.native": use_converter
+"src/frontend/cli.native": use_xword
+<src/frontend/*.ml{,i,y}>: pkg_cmdliner
+# Executable crosspad
+"src/frontend/gtkgui.native": pkg_angstrom
+"src/frontend/gtkgui.native": pkg_bitstring
+"src/frontend/gtkgui.native": pkg_containers
+"src/frontend/gtkgui.native": pkg_ezjsonm
+"src/frontend/gtkgui.native": pkg_lablgtk2
+"src/frontend/gtkgui.native": pkg_lablgtk2.auto-init
+"src/frontend/gtkgui.native": pkg_str
+"src/frontend/gtkgui.native": pkg_yojson
+"src/frontend/gtkgui.native": use_converter
+"src/frontend/gtkgui.native": use_xword
+<src/frontend/*.ml{,i,y}>: pkg_angstrom
+<src/frontend/*.ml{,i,y}>: pkg_bitstring
+<src/frontend/*.ml{,i,y}>: pkg_containers
+<src/frontend/*.ml{,i,y}>: pkg_ezjsonm
+<src/frontend/*.ml{,i,y}>: pkg_lablgtk2
+<src/frontend/*.ml{,i,y}>: pkg_lablgtk2.auto-init
+<src/frontend/*.ml{,i,y}>: pkg_str
+<src/frontend/*.ml{,i,y}>: pkg_yojson
+<src/frontend/*.ml{,i,y}>: use_converter
+<src/frontend/*.ml{,i,y}>: use_xword
+# OASIS_STOP
