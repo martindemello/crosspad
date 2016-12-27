@@ -26,7 +26,7 @@ Library xword
     Xword,
     Typedefs
   InternalModules: Utils
-  CompiledObject: native
+  CompiledObject: byte
 
 Library converter
   FindlibName: convert
@@ -40,7 +40,7 @@ Library converter
   Install: true
   BuildTools: ocamlbuild
   Modules: Converter
-  CompiledObject: native
+  CompiledObject: byte
 
 Executable xwconvert
   MainIs: cli.ml
