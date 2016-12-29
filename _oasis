@@ -22,7 +22,7 @@ Library xword
   Install: true
   BuildTools: ocamlbuild
   Modules: Xword
-  InternalModules: Utils
+  InternalModules: Typedefs, Utils
   CompiledObject: byte
 
 Library converter
