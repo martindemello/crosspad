@@ -5,7 +5,6 @@ Synopsis:    Crossword file format converter and viewer
 Authors:     Martin DeMello <martindemello@gmail.com>
 License:     MIT
 Plugins:     DevFiles (0.4), META (0.4)
-AlphaFeatures: source_patterns
 
 # ------------------------------------------------------------
 # Library
@@ -38,6 +37,9 @@ Library converter
   Install: true
   BuildTools: ocamlbuild
   Modules: Converter
+  InternalModules:
+    Puz, Puz_bin, Puz_match, Puz_types, Puz_utils, Ac_text,
+    Json, Json_reader
   CompiledObject: byte
 
 Executable xwconvert
