@@ -1,5 +1,5 @@
 open StdLabels
-open Typedefs
+open Xword.Types
 open Cursor
 open Utils
 

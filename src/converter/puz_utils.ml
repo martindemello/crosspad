@@ -1,5 +1,5 @@
 open Puz_types
-open Typedefs
+open Xword.Types
 open Utils
 
 (* CRC checksum for binary format *)

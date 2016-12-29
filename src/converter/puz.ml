@@ -1,5 +1,5 @@
 open Printf
-open Typedefs
+open Xword.Types
 open Utils
 open Puz_types
 open Puz_utils

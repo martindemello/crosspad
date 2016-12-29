@@ -1,5 +1,5 @@
 open Printf
-open Typedefs
+open Xword.Types
 open Utils
 
 let write_solution xw =

@@ -1,4 +1,4 @@
-open Typedefs
+open Xword.Types
 open Utils
 
 let readers = [

@@ -1,6 +1,10 @@
 open Typedefs
 open Utils
 
+module Types = struct
+  include Typedefs
+end
+
 let make rows cols =
   let sq = { cell = Empty; num = 0 } in
   {

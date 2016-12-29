@@ -1,6 +1,6 @@
 open Opium.Std
 
-open Typedefs
+open Xword.Types
 open Printf
 
 type key = string

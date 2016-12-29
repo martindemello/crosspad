@@ -1,5 +1,5 @@
 open Converter
-open Typedefs
+open Xword.Types
 
 let read file =
   let data = CCIO.(with_in file.name read_all) in
