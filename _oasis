@@ -39,7 +39,7 @@ Library converter
   Modules: Converter
   InternalModules:
     Puz, Puz_bin, Puz_match, Puz_types, Puz_utils, Ac_text,
-    Json, Json_reader
+    Xw_json, Json_reader
   CompiledObject: byte
 
 Executable xwconvert

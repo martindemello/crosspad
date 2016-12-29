@@ -1,6 +1,8 @@
 open Xword.Types
 open Utils
 
+module Json = Xw_json
+
 let readers = [
   "across-lite-binary", (module Puz : READER);
   "json", (module Json : READER)
