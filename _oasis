@@ -21,7 +21,7 @@ Library xword
   Path: src/xword
   Install: true
   BuildTools: ocamlbuild
-  Modules: Xword
+  Modules: Xword, Cursor
   InternalModules: Typedefs, Utils
   CompiledObject: byte
 
