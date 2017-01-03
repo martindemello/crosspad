@@ -1,14 +1,16 @@
 # OASIS_START
-# DO NOT EDIT (digest: a9cab9f69aff0453fc8a197a39aa9599)
+# DO NOT EDIT (digest: 607d1005dc293aa026f3a9eecb7fa500)
 version = "0.1"
-description = "Crossword file format converter and viewer"
+description =
+"Crossword grid manipulation library, file format converter and viewer"
 requires = "angstrom containers ezjsonm str yojson"
 archive(byte) = "xword.cma"
 archive(byte, plugin) = "xword.cma"
 exists_if = "xword.cma"
 package "convert" (
  version = "0.1"
- description = "Crossword file format converter and viewer"
+ description =
+ "Crossword grid manipulation library, file format converter and viewer"
  requires = "angstrom bitstring containers xword"
  archive(byte) = "converter.cma"
  archive(byte, plugin) = "converter.cma"

@@ -1,10 +1,17 @@
 OASISFormat: 0.4
 Name:        crosspad
 Version:     0.1
-Synopsis:    Crossword file format converter and viewer
 Authors:     Martin DeMello <martindemello@gmail.com>
+Homepage:    https://github.com/martindemello/crosspad
 License:     MIT
 Plugins:     DevFiles (0.4), META (0.4)
+
+Synopsis:    Crossword grid manipulation library, file format converter and viewer
+Description:
+  This library defines an `xword` datatype, a library of useful functions, and
+  conversions to and from various file formats.
+
+  Also included are a command line file conversion tool and a gtk-based viewer.
 
 # ------------------------------------------------------------
 # Library
@@ -42,6 +49,10 @@ Library converter
     Xw_json, Json_reader
   CompiledObject: byte
 
+# ------------------------------------------------------------
+# Executables
+# ------------------------------------------------------------
+
 Executable xwconvert
   MainIs: cli.ml
   BuildDepends:
@@ -66,3 +77,12 @@ Executable crosspad
   Install: true
   BuildTools: ocamlbuild
   CompiledObject: native
+
+# ------------------------------------------------------------
+# Misc
+# ------------------------------------------------------------
+
+SourceRepository head
+  Type: git
+  Location: git://github.com/martindemello/crosspad
+  Browser: https://github.com/martindemello/crosspad
