@@ -1,0 +1,33 @@
+opam-version: "1.2"
+name: "crosspad"
+version: "0.1"
+maintainer: "Martin DeMello <martindemello@gmail.com>"
+authors: [ "Martin DeMello <martindemello@gmail.com>" ]
+license: "MIT"
+homepage: "https://github.com/martindemello/crosspad"
+dev-repo: "git://github.com/martindemello/crosspad"
+bug-reports: "https://github.com/martindemello/crosspad/issues"
+build: [
+  ["ocaml" "setup.ml" "-configure" "--prefix" prefix]
+  ["ocaml" "setup.ml" "-build"]
+]
+install: ["ocaml" "setup.ml" "-install"]
+remove: [
+  ["ocaml" "%{etc}%/crosspad/_oasis_remove_.ml" "%{etc}%/crosspad"]
+]
+build-test: [
+  ["ocaml" "setup.ml" "-configure" "--enable-tests"]
+  ["ocaml" "setup.ml" "-build"]
+  ["ocaml" "setup.ml" "-test"]
+]
+depends: [
+  "angstrom"
+  "bitstring"
+  "cmdliner" {build}
+  "containers"
+  "ezjsonm"
+  "lablgtk" {build}
+  "ocamlbuild" {build}
+  "ocamlfind" {build}
+  "yojson"
+]
