@@ -144,6 +144,15 @@ let inspect xw =
   inspect_grid xw;
   inspect_clues xw
 
+(* Set cell values with constraints:
+ * - Do not delete or overwrite a black cell
+ * - Do not overwrite a letter with a black cell
+ *
+ * Returns true if the cell value was changed.
+ *
+ * Use set_cell to set cells unconditionally *)
+
+(* set a cell to black only if it is empty *)
 let toggle_black xw x y =
   match get_cell xw x y with
   | Black -> set_cell xw x y Empty; true
@@ -155,6 +164,11 @@ let delete_letter xw x y =
   match get_cell xw x y with
   | Black -> false
   | _ -> set_cell xw x y Empty; true
+
+let set_letter xw x y s =
+  match get_cell xw x y with
+  | Black -> false
+  | _ -> set_cell xw x y (Letter s); true
 
 (* Get and set metadata *)
 
