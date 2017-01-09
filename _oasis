@@ -28,8 +28,8 @@ Library xword
   Path: src/xword
   Install: true
   BuildTools: ocamlbuild
-  Modules: Xword, Cursor
-  InternalModules: Typedefs, Utils
+  Modules: Xword, Cursor, Typedefs
+  InternalModules: Utils
   CompiledObject: byte
 
 Library converter
