@@ -69,6 +69,21 @@ let renumber ?(on_ac=ignore) ?(on_dn=ignore) xw =
     done
   done
 
+(* collect letters between (x, y) and the boundary in the (dx, dy) direction *)
+let rec collect_word xw x y dx dy out =
+  if boundary xw x y then
+    out
+  else
+    collect_word xw (x + dx) (y + dy) dx dy ((x, y) :: out)
+
+let word_ac xw x y =
+  let out = collect_word xw x y (-1) 0 [] in
+  collect_word xw (x + 1) y 1 0 (List.rev out)
+
+let word_dn xw x y =
+  let out = collect_word xw x y 0 (-1) [] in
+  collect_word xw x (y + 1) 0 1 (List.rev out)
+
 (* Update the 'symbol' field in every rebus square, so that cells
  * with the same solution have the same symbol. Symbols are
  * integers from 0..

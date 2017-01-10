@@ -77,6 +77,8 @@ val iteri :
   Typedefs.xword -> (int -> int -> int -> Typedefs.cell -> 'a) -> unit
 val renumber :
   ?on_ac:(int -> unit) -> ?on_dn:(int -> unit) -> Typedefs.xword -> unit
+val word_ac : Typedefs.xword -> int -> int -> (int * int) list
+val word_dn : Typedefs.xword -> int -> int -> (int * int) list
 val encode_rebus :
   Typedefs.xword -> (int * string) list * Typedefs.rebus Typedefs.SMap.t
 val get_clues : Typedefs.xword -> Typedefs.word_direction -> string list
