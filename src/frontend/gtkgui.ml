@@ -221,7 +221,7 @@ class clue_widget ~xw ~dir ?packing ?show () =
       List.iter ~f:(fun clue ->
           let row = model#append () in
           model#set ~row ~column clue)
-        clues;
+        (List.map snd clues);
       view#append_column clue_col_view; ()
   end
 

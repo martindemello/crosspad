@@ -11,7 +11,7 @@ let write_solution xw =
   Xword.format_grid xw ~fmt ~charsep:"" ~rowsep:"\n"
 
 let write_clues cs =
-  unlines cs 
+  unlines (List.map snd cs)
 
 let write_rebus xw =
   let rtbl, rmap = Xword.encode_rebus xw in

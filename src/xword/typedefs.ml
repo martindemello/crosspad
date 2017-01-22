@@ -15,9 +15,11 @@ type square = {
   num : int;
 }
 
+type clue = int * string
+
 type clues = {
-  mutable across : string list;
-  mutable down : string list;
+  mutable across : clue list;
+  mutable down : clue list;
 }
 
 (* Directions for cursor movement on the grid *)

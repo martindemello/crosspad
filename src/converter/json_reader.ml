@@ -10,8 +10,8 @@ open Yojson.Safe
  * xword = { rows : int, 
  *           cols : int, 
  *           cells : [cell],
- *           across : [string]
- *           down : [string]
+ *           across : [[n, string]]
+ *           down : [[n, string]]
  *         }
  *)
 
@@ -39,13 +39,14 @@ let json_cell_list xw =
 
 let json_grid xw =
   let cells = json_cell_list xw in
-  let str xs = List.map (fun x -> `String x) xs in
+  let clue (n, x) = `List [`Int n; `String x] in
+  let clues xs = List.map clue xs in
   `Assoc [
     "rows", `Int xw.rows;
     "cols", `Int xw.cols;
     "cells", `List cells;
-    "across", `List (str xw.clues.across);
-    "down", `List (str xw.clues.down)
+    "across", `List (clues xw.clues.across);
+    "down", `List (clues xw.clues.down)
   ]
 
 let write xword =
@@ -63,8 +64,8 @@ type input_xword = {
   rows : int;
   cols : int;
   cells : input_cell list;
-  across : string list;
-  down : string list
+  across : (int * string) list;
+  down : (int * string) list
 }
 
 let rebus_of_string s =
@@ -94,7 +95,7 @@ let unpack_cell (j : json) =
 
 let unpack_clue (j : json) =
   match j with
-  | `String s -> s
+  | `List [`Int n; `String s] -> (n, s)
   | _ -> raise (PuzzleFormatError "Malformed json")
 
 let unpack_toplevel (js : (string * json) list) =

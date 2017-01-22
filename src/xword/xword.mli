@@ -17,8 +17,8 @@ module Types :
     type square = Typedefs.square = { cell : cell; num : int; }
     type clues =
       Typedefs.clues = {
-      mutable across : string list;
-      mutable down : string list;
+      mutable across : Typedefs.clue list;
+      mutable down : Typedefs.clue list;
     }
     type direction =
         [ `Across | `Bksp_Ac | `Bksp_Dn | `Down | `Left | `Right | `Up ]
@@ -81,7 +81,7 @@ val word_ac : Typedefs.xword -> int -> int -> (int * int) list
 val word_dn : Typedefs.xword -> int -> int -> (int * int) list
 val encode_rebus :
   Typedefs.xword -> (int * string) list * Typedefs.rebus Typedefs.SMap.t
-val get_clues : Typedefs.xword -> Typedefs.word_direction -> string list
+val get_clues : Typedefs.xword -> Typedefs.word_direction -> Typedefs.clue list
 val clue_numbers : Typedefs.xword -> int list * int list
 val format_grid :
   Typedefs.xword ->

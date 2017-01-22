@@ -148,12 +148,11 @@ let inspect_grid xw =
   print_endline s
 
 let inspect_clues xw =
-  let ac, dn = clue_numbers xw in
-  let print_clue i clue = Printf.printf "%d. %s\n" i clue in
+  let print_clue (n, clue) = Printf.printf "%d. %s\n" n clue in
   print_endline "Across";
-  List.iter2 print_clue ac xw.clues.across;
+  List.iter print_clue xw.clues.across;
   print_endline "Down";
-  List.iter2 print_clue dn xw.clues.down
+  List.iter print_clue xw.clues.down
 
 let inspect xw =
   inspect_grid xw;

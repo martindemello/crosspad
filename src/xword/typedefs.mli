@@ -33,7 +33,8 @@ type letter = string
 type rebus = { symbol : int; solution : string; display_char : string; }
 type cell = Black | Empty | Letter of letter | Rebus of rebus
 type square = { cell : cell; num : int; }
-type clues = { mutable across : string list; mutable down : string list; }
+type clue = int * string
+type clues = { mutable across : clue list; mutable down : clue list; }
 type direction =
     [ `Across | `Bksp_Ac | `Bksp_Dn | `Down | `Left | `Right | `Up ]
 type word_direction = [ `Across | `Down ]

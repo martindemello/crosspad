@@ -116,8 +116,8 @@ let unpack_clues xw puzzle =
   let dn = ref [] in
   let i = ref 0 in
   Xword.renumber
-    ~on_ac:(fun n -> ac := clues.(!i) :: !ac; i := !i + 1)
-    ~on_dn:(fun n -> dn := clues.(!i) :: !dn; i := !i + 1)
+    ~on_ac:(fun n -> ac := (!i, clues.(!i)) :: !ac; i := !i + 1)
+    ~on_dn:(fun n -> dn := (!i, clues.(!i)) :: !dn; i := !i + 1)
     xw;
   xw.clues.across <- List.rev !ac;
   xw.clues.down <- List.rev !dn
@@ -185,7 +185,8 @@ let pack_clues xw =
     | (x, `Ac) :: xs -> weave xs (tl a) d ((hd a) :: out)
     | (x, `Dn) :: xs -> weave xs a (tl d) ((hd d) :: out)
   in
-  weave nums xw.clues.across xw.clues.down []
+  let cs = weave nums xw.clues.across xw.clues.down [] in
+  List.map snd cs
 
 (* pack a grid as a single string of chars *)
 let pack_grid xw ~fmt = Xword.format_grid xw ~charsep:"" ~rowsep:"" ~fmt

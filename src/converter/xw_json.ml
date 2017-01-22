@@ -10,8 +10,8 @@ open Ezjsonm
  * xword = { rows : int,
  *           cols : int,
  *           cells : [cell],
- *           across : [string]
- *           down : [string]
+ *           across : [[int, string]]
+ *           down : [[int, string]]
  *         }
  *)
 
@@ -41,12 +41,13 @@ let json_cell_list xw =
 
 let write_json xw =
   let cells = json_cell_list xw in
+  let clue (n, s) = `A [int n; string s] in
   dict [
     "rows", int xw.rows;
     "cols", int xw.cols;
     "cells", list id cells;
-    "across", list string xw.clues.across;
-    "down", list string xw.clues.down
+    "across", list clue xw.clues.across;
+    "down", list clue xw.clues.down
   ]
 
 let error err =
