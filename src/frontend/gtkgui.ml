@@ -63,7 +63,7 @@ class xw_widget ~xw ?packing ?show () =
       dir <- match dir with `Across -> `Down | `Down -> `Across
 
     method toggle_black =
-      if Xword.toggle_black xw cursor.x cursor.y then begin
+      if Xword.toggle_black ~symmetry:`Symm180 xw cursor.x cursor.y then begin
         Xword.renumber xw |> ignore;
         self#draw
       end
@@ -274,9 +274,14 @@ let () =
   let vb1 = GPack.vbox ~packing:(hbox#pack ~expand:false) () in
   let fr = GBin.frame ~border_width:3 ~shadow_type:`IN
       ~packing:(vb1#pack ~expand:false) () in
-  let fname = Sys.argv.(1) in
-  let input = { name = fname; format = "across-lite-binary" } in
-  let xw = Converter.read_file input in
+  let xw =
+    if Array.length Sys.argv > 0 then
+      let fname = Sys.argv.(1) in
+      let input = { name = fname; format = "across-lite-binary" } in
+      Converter.read_file input
+    else
+      Xword.make 15 15
+  in
   let _xword = new xw_widget ~packing:fr#add ~xw:xw () in
   let _clues = new clues_widget ~packing:hbox#add ~xw () in
   let _meta = new metadata_widget ~packing:vb1#add ~xw () in

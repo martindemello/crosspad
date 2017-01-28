@@ -166,12 +166,40 @@ let inspect xw =
  *
  * Use set_cell to set cells unconditionally *)
 
-(* set a cell to black only if it is empty *)
-let toggle_black xw x y =
-  match get_cell xw x y with
-  | Black -> set_cell xw x y Empty; true
-  | Empty -> set_cell xw x y Black; true
-  | _ -> false
+let symm_180 xw x y =
+  let xmax = xw.cols - 1 in
+  let ymax = xw.rows - 1 in
+  [ (x, y); (xmax - x, ymax - y) ]
+
+let symm_90 xw x y =
+  let xmax = xw.cols - 1 in
+  let ymax = xw.rows - 1 in
+  [ (x, y);
+    (xmax - x, ymax - y);
+    (xmax - y, x);
+    (y, ymax - x);
+  ]
+
+let target_cells x y xw symmetry =
+  match symmetry with
+  | `SymmNone -> [x, y]
+  | `Symm90 -> symm_90 xw x y
+  | `Symm180 -> symm_180 xw x y
+
+(* set a cell and its symmetrical cells to black/empty iff no filled
+ * cells are affected *)
+let toggle_black ?(symmetry=`SymmNone) xw x y =
+  let targets = target_cells x y xw symmetry in
+  let can_toggle (x, y) = match get_cell xw x y with
+    | Black | Empty -> true
+    | _ -> false
+  in
+  if List.for_all can_toggle targets then
+    let state = match get_cell xw x y with Black -> Empty | _ -> Black in
+    List.iter (fun (x, y) -> set_cell xw x y state) targets;
+    true
+  else
+    false
 
 (* delete a cell unless it is black *)
 let delete_letter xw x y =

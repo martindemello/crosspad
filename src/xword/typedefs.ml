@@ -27,6 +27,9 @@ type direction = [`Left | `Right | `Up | `Down | `Across | `Bksp_Ac | `Bksp_Dn ]
 
 type word_direction = [`Across | `Down]
 
+(* Symmetry for grid structure edits (black squares and bars) *)
+type symmetry = [`SymmNone | `Symm90 | `Symm180]
+
 (* Metadata fields supported by ipuz *)
 
 type metadata_key = 
