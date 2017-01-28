@@ -47,12 +47,12 @@ class xw_widget ~xw ?packing ?show () =
     val mutable pixmap = None
 
     initializer
-      da#event#connect#expose ~callback:(fun _ -> self#draw; true);
-      da#event#connect#key_press
+      ignore @@ da#event#connect#expose ~callback:(fun _ -> self#draw; true);
+      ignore @@ da#event#connect#key_press
         ~callback:(fun ev -> self#handle_key_press ev);
 
       da#event#add [`BUTTON_PRESS];
-      da#event#connect#button_press
+      ignore @@ da#event#connect#button_press
         ~callback:(fun ev -> self#handle_button_press ev);
 
       da#misc#set_can_focus true;
@@ -63,7 +63,13 @@ class xw_widget ~xw ?packing ?show () =
       dir <- match dir with `Across -> `Down | `Down -> `Across
 
     method toggle_black =
-      if Xword.toggle_black ~symmetry:`Symm180 xw cursor.x cursor.y then begin
+      if Xword.toggle_black ~symmetry:Symm180 xw cursor.x cursor.y then begin
+        Xword.renumber xw |> ignore;
+        self#draw
+      end
+
+    method toggle_bar (d : grid_direction) =
+      if Xword.toggle_bar ~symmetry:Symm180 xw cursor.x cursor.y d then begin
         Xword.renumber xw |> ignore;
         self#draw
       end
@@ -107,21 +113,34 @@ class xw_widget ~xw ?packing ?show () =
     method handle_key_press ev =
       let is_letter k = (Char.code 'a') <= k && k <= (Char.code 'z') in
       let handled = ref true in
-      let _ = match GdkEvent.Key.keyval ev with
-      | k when k = GdkKeysyms._Left -> self#move_cursor `Left
-      | k when k = GdkKeysyms._KP_Left -> self#move_cursor `Left
-      | k when k = GdkKeysyms._Right -> self#move_cursor `Right
-      | k when k = GdkKeysyms._KP_Right -> self#move_cursor `Right
-      | k when k = GdkKeysyms._Up -> self#move_cursor `Up
-      | k when k = GdkKeysyms._KP_Up -> self#move_cursor `Up
-      | k when k = GdkKeysyms._Down -> self#move_cursor `Down
-      | k when k = GdkKeysyms._KP_Down -> self#move_cursor `Down
-      | k when k = GdkKeysyms._space -> self#toggle_black
-      | k when k = GdkKeysyms._Page_Up -> self#toggle_dir
-      | k when k = GdkKeysyms._Delete -> self#delete_letter ~bksp:false
-      | k when k = GdkKeysyms._BackSpace -> self#delete_letter ~bksp:true
-      | k when is_letter k -> self#set_letter (Char.chr k)
-      | _ -> handled := false
+      let state = GdkEvent.Key.state ev in
+      let _ = if List.mem `CONTROL state then
+         match GdkEvent.Key.keyval ev with
+          | k when k = GdkKeysyms._Left -> self#toggle_bar `Left
+          | k when k = GdkKeysyms._KP_Left -> self#toggle_bar `Left
+          | k when k = GdkKeysyms._Right -> self#toggle_bar `Right
+          | k when k = GdkKeysyms._KP_Right -> self#toggle_bar `Right
+          | k when k = GdkKeysyms._Up -> self#toggle_bar `Up
+          | k when k = GdkKeysyms._KP_Up -> self#toggle_bar `Up
+          | k when k = GdkKeysyms._Down -> self#toggle_bar `Down
+          | k when k = GdkKeysyms._KP_Down -> self#toggle_bar `Down
+          | _ -> handled := false
+      else
+        match GdkEvent.Key.keyval ev with
+        | k when k = GdkKeysyms._Left -> self#move_cursor `Left
+        | k when k = GdkKeysyms._KP_Left -> self#move_cursor `Left
+        | k when k = GdkKeysyms._Right -> self#move_cursor `Right
+        | k when k = GdkKeysyms._KP_Right -> self#move_cursor `Right
+        | k when k = GdkKeysyms._Up -> self#move_cursor `Up
+        | k when k = GdkKeysyms._KP_Up -> self#move_cursor `Up
+        | k when k = GdkKeysyms._Down -> self#move_cursor `Down
+        | k when k = GdkKeysyms._KP_Down -> self#move_cursor `Down
+        | k when k = GdkKeysyms._space -> self#toggle_black
+        | k when k = GdkKeysyms._Page_Up -> self#toggle_dir
+        | k when k = GdkKeysyms._Delete -> self#delete_letter ~bksp:false
+        | k when k = GdkKeysyms._BackSpace -> self#delete_letter ~bksp:true
+        | k when is_letter k -> self#set_letter (Char.chr k)
+        | _ -> handled := false
       in
       !handled
 
@@ -143,8 +162,8 @@ class xw_widget ~xw ?packing ?show () =
         let (w,h) = Pango.Layout.get_pixel_size layout in
         let top, left = row * scale, col * scale in
         let x, y = match pos with
-          | `Letter -> (left + 4 , top + scale - h)
-          | `Number -> (left + scale - w, top + 1)
+          | `Letter -> (left + scale / 2 - w / 2, top + scale - h)
+          | `Number -> (left + 2, top + 2)
         in
         dr#put_layout ~x ~y ~fore:`BLACK layout;
       in
@@ -176,6 +195,17 @@ class xw_widget ~xw ?packing ?show () =
           rect ~filled:true ();
           dr#set_foreground `BLACK;
           rect ~filled:false ();
+          (* bars *)
+          let sq = Xword.get xw x y in
+          if sq.bar_right then begin
+            let bx = left + scale in
+            dr#rectangle ~x:(bx - 2) ~y:top ~width:2 ~height:scale ~filled:true ()
+          end;
+          if sq.bar_down then begin
+            let by = top + scale in
+            dr#rectangle ~x:left ~y:(by - 2) ~width:scale ~height:2 ~filled:true ()
+          end;
+
           (* contents *)
           write_number ~row:y ~col:x;
           write_letter ~row:y ~col:x ~cell
@@ -222,7 +252,7 @@ class clue_widget ~xw ~dir ?packing ?show () =
           let row = model#append () in
           model#set ~row ~column clue)
         (List.map snd clues);
-      view#append_column clue_col_view; ()
+      ignore @@ view#append_column clue_col_view
   end
 
 class clues_widget ~xw ?packing ?show () =
@@ -260,32 +290,32 @@ class metadata_widget ~xw ?packing ?show () =
           model#set ~row ~column:val_col v;
         )
         xw.metadata;
-      view#append_column key_col_view;
-      view#append_column val_col_view; ()
+      ignore @@ view#append_column key_col_view;
+      ignore @@ view#append_column val_col_view
   end
 
 
 let () =
   let _locale = GMain.init ~setlocale:true () in
   let w = GWindow.window () in
-  w#connect#destroy ~callback:GMain.quit;
+  ignore @@ w#connect#destroy ~callback:GMain.quit;
   let vbox = GPack.vbox ~packing:w#add () in
   let hbox = GPack.hbox ~packing:vbox#add () in
   let vb1 = GPack.vbox ~packing:(hbox#pack ~expand:false) () in
   let fr = GBin.frame ~border_width:3 ~shadow_type:`IN
       ~packing:(vb1#pack ~expand:false) () in
   let xw =
-    if Array.length Sys.argv > 0 then
+    if Array.length Sys.argv > 1 then
       let fname = Sys.argv.(1) in
       let input = { name = fname; format = "across-lite-binary" } in
       Converter.read_file input
     else
-      Xword.make 15 15
+      Xword.make 15 15 |> Xword.renumber
   in
   let _xword = new xw_widget ~packing:fr#add ~xw:xw () in
   let _clues = new clues_widget ~packing:hbox#add ~xw () in
   let _meta = new metadata_widget ~packing:vb1#add ~xw () in
   let quit = GButton.button ~label:"Quit" ~packing:vbox#pack () in
-  quit#connect#clicked ~callback:GMain.quit;
+  ignore @@ quit#connect#clicked ~callback:GMain.quit;
   w#show ();
   GMain.main ()

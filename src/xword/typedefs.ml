@@ -13,6 +13,8 @@ type cell = Black | Empty | Letter of letter | Rebus of rebus
 type square = {
   cell : cell;
   num : int;
+  bar_right: bool;
+  bar_down: bool;
 }
 
 type clue = int * string
@@ -27,8 +29,13 @@ type direction = [`Left | `Right | `Up | `Down | `Across | `Bksp_Ac | `Bksp_Dn ]
 
 type word_direction = [`Across | `Down]
 
+type grid_direction = [`Left | `Right | `Up | `Down]
+
 (* Symmetry for grid structure edits (black squares and bars) *)
-type symmetry = [`SymmNone | `Symm90 | `Symm180]
+type symmetry = SymmNone | Symm90 | Symm180
+
+(* Grid rotational symmetry in quarter turns *)
+type rotation = R0 | R1 | R2 | R3
 
 (* Metadata fields supported by ipuz *)
 

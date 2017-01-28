@@ -5,12 +5,18 @@ module Types = struct
   include Typedefs
 end
 
+let empty_square = {
+  cell = Empty;
+  num = 0;
+  bar_right = false;
+  bar_down = false;
+}
+
 let make rows cols =
-  let sq = { cell = Empty; num = 0 } in
   {
     rows = rows;
     cols = cols;
-    grid = Array.make_matrix rows cols sq;
+    grid = Array.make_matrix rows cols empty_square;
     clues = { across = []; down = [] };
     metadata = []
   }
@@ -19,32 +25,94 @@ let get xw x y = xw.grid.(y).(x)
 
 let set xw x y s = xw.grid.(y).(x) <- s
 
+let setmap xw x y (f : square -> square) =
+  xw.grid.(y).(x) <- f xw.grid.(y).(x)
+
 let get_cell xw x y = (get xw x y).cell
 
-let set_cell xw x y c = xw.grid.(y).(x) <- { xw.grid.(y).(x) with cell = c }
+let set_cell xw x y c =
+  setmap xw x y (fun s -> { s with cell = c })
 
 let get_num xw x y = (get xw x y).num
 
-let set_num xw x y n = xw.grid.(y).(x) <- { xw.grid.(y).(x) with num = n }
+let set_num xw x y n =
+  setmap xw x y (fun s -> { s with num = n })
 
 let is_black xw x y = (get_cell xw x y) = Black
 
-let boundary xw x y =
-  (x < 0) || (y < 0) ||
-  (x >= xw.cols) || (y >= xw.rows) ||
-  is_black xw x y
+let not_black xw x y = not (is_black xw x y)
 
-let non_boundary xw x y = not (boundary xw x y)
+let get_bar_right xw x y = (get xw x y).bar_right
+
+let get_bar_down xw x y = (get xw x y).bar_down
+
+(* in theory a square has four bars, not two, and bars on the boundary
+ * should not count *)
+let has_bar_left xw x y =
+  if x = 0 then
+    false
+  else
+    get_bar_right xw (x - 1) y
+
+let has_bar_right xw x y =
+  if x = xw.cols - 1 then
+    false
+  else
+    get_bar_right xw x y
+
+let has_bar_up xw x y =
+  if y = 0 then
+    false
+  else
+    get_bar_down xw x (y - 1)
+
+let has_bar_down xw x y =
+  if y = xw.rows - 1 then
+    false
+  else
+    get_bar_down xw x y
+
+let toggle_bar_right xw x y =
+  setmap xw x y (fun s -> {s with bar_right = not s.bar_right})
+
+let toggle_bar_down xw x y =
+  setmap xw x y (fun s -> {s with bar_down = not s.bar_down})
+
+let left_boundary xw x y =
+  x = 0
+  || is_black xw (x - 1) y
+  || has_bar_left xw x y
+
+let right_boundary xw x y =
+  x = xw.cols - 1
+  || is_black xw (x + 1) y
+  || has_bar_right xw x y
+
+let top_boundary xw x y =
+  y = 0
+  || is_black xw x (y - 1)
+  || has_bar_up xw x y
+
+let bottom_boundary xw x y =
+  y = xw.rows - 1
+  || is_black xw x (y + 1)
+  || has_bar_down xw x y
+
+let boundary dir = match dir with
+  | `Left -> left_boundary
+  | `Right -> right_boundary
+  | `Up -> top_boundary
+  | `Down -> bottom_boundary
 
 let start_across xw x y =
-  (boundary xw (x - 1) y) &&
-  (non_boundary xw x y) &&
-  (non_boundary xw (x + 1) y)
+  not_black xw x y &&
+  left_boundary xw x y &&
+  not (right_boundary xw x y)
 
 let start_down xw x y =
-  (boundary xw x (y - 1)) &&
-  (non_boundary xw x y) &&
-  (non_boundary xw x (y + 1))
+  not_black xw x y &&
+  top_boundary xw x y &&
+  not (bottom_boundary xw x y)
 
 let iteri xw f =
   for y = 0 to xw.rows - 1 do
@@ -67,22 +135,24 @@ let renumber ?(on_ac=ignore) ?(on_dn=ignore) xw =
       else
         set_num xw x y 0;
     done
-  done
+  done;
+  xw
 
 (* collect letters between (x, y) and the boundary in the (dx, dy) direction *)
-let rec collect_word xw x y dx dy out =
-  if boundary xw x y then
+let rec collect_word xw x y dir out =
+  let (dx, dy) = Cursor.delta (dir :> direction) in
+  if boundary dir xw x y then
     out
   else
-    collect_word xw (x + dx) (y + dy) dx dy ((x, y) :: out)
+    collect_word xw (x + dx) (y + dy) dir ((x, y) :: out)
 
 let word_ac xw x y =
-  let out = collect_word xw x y (-1) 0 [] in
-  collect_word xw (x + 1) y 1 0 (List.rev out)
+  let out = collect_word xw x y `Left [] in
+  collect_word xw (x + 1) y `Right (List.rev out)
 
 let word_dn xw x y =
-  let out = collect_word xw x y 0 (-1) [] in
-  collect_word xw x (y + 1) 0 1 (List.rev out)
+  let out = collect_word xw x y `Up [] in
+  collect_word xw x (y + 1) `Down (List.rev out)
 
 (* Update the 'symbol' field in every rebus square, so that cells
  * with the same solution have the same symbol. Symbols are
@@ -120,10 +190,11 @@ let get_clues xw (dir : word_direction) = match dir with
 let clue_numbers xw =
   let ac = ref [] in
   let dn = ref [] in
-  renumber
+  let _ = renumber
     ~on_ac:(fun n -> ac := n :: !ac)
     ~on_dn:(fun n -> dn := n :: !dn)
-    xw;
+    xw
+  in
   List.rev !ac, List.rev !dn
 
 let format_grid xw ~fmt ~rowsep ~charsep =
@@ -166,30 +237,34 @@ let inspect xw =
  *
  * Use set_cell to set cells unconditionally *)
 
-let symm_180 xw x y =
+let rotate_xy xw x y rot =
   let xmax = xw.cols - 1 in
   let ymax = xw.rows - 1 in
-  [ (x, y); (xmax - x, ymax - y) ]
+  match rot with
+  | R0 -> (x, y)
+  | R1 -> (xmax - y, x)
+  | R2 -> (xmax - x, ymax - y)
+  | R3 -> (y, ymax - x)
 
-let symm_90 xw x y =
-  let xmax = xw.cols - 1 in
-  let ymax = xw.rows - 1 in
-  [ (x, y);
-    (xmax - x, ymax - y);
-    (xmax - y, x);
-    (y, ymax - x);
-  ]
+let rotate_dir rot =
+  match rot with
+  | R0 -> fun x -> x
+  | R1 -> (function
+        `Right -> `Down | `Down -> `Left | `Left -> `Up | `Up -> `Right )
+  | R2 -> (function
+        `Right -> `Left | `Down -> `Up | `Left -> `Right | `Up -> `Down )
+  | R3 -> ( function
+        `Right -> `Up | `Down -> `Right | `Left -> `Down | `Up -> `Left )
 
-let target_cells x y xw symmetry =
-  match symmetry with
-  | `SymmNone -> [x, y]
-  | `Symm90 -> symm_90 xw x y
-  | `Symm180 -> symm_180 xw x y
+let rotations = function
+  | SymmNone -> [R0]
+  | Symm90 -> [R0; R1; R2; R3]
+  | Symm180 -> [R0; R2]
 
 (* set a cell and its symmetrical cells to black/empty iff no filled
  * cells are affected *)
-let toggle_black ?(symmetry=`SymmNone) xw x y =
-  let targets = target_cells x y xw symmetry in
+let toggle_black ?(symmetry=SymmNone) xw x y =
+  let targets = List.map (rotate_xy xw x y) (rotations symmetry) in
   let can_toggle (x, y) = match get_cell xw x y with
     | Black | Empty -> true
     | _ -> false
@@ -200,6 +275,26 @@ let toggle_black ?(symmetry=`SymmNone) xw x y =
     true
   else
     false
+
+(* toggle bars, maintaining symmetry *)
+let toggle_bar ?(symmetry=SymmNone) xw x y d =
+  if (x = 0 && d = `Left) ||
+     (x = xw.cols - 1 && d = `Right) ||
+     (y = 0 && d = `Up) ||
+     (y = xw.rows - 1 && d = `Down) then
+    false
+  else begin
+    let target rot = (rotate_xy xw x y rot), (rotate_dir rot d) in
+    let targets = List.map target (rotations symmetry) in
+    let toggle ((x, y), d) = match d with
+      | `Left -> toggle_bar_right xw (x - 1) y
+      | `Right -> toggle_bar_right xw x y
+      | `Up -> toggle_bar_down xw x (y - 1)
+      | `Down -> toggle_bar_down xw x y
+    in
+    List.iter toggle targets;
+    true
+  end
 
 (* delete a cell unless it is black *)
 let delete_letter xw x y =
