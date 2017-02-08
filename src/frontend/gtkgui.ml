@@ -108,6 +108,8 @@ class xw_widget ~xw ?packing ?show () =
         )
       | _ -> handled := false
       in
+      if !handled then
+        da#misc#grab_focus ();
       !handled
 
     method handle_key_press ev =
