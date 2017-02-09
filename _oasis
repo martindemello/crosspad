@@ -49,6 +49,17 @@ Library converter
     Xw_json, Json_reader
   CompiledObject: byte
 
+Library crosspad-model
+  FindlibName: crosspad-model
+  FindlibParent: xword
+  BuildDepends:
+    xword
+  Path: src/xword
+  Install: true
+  BuildTools: ocamlbuild
+  Modules: Crosspad_model
+  CompiledObject: byte
+
 # ------------------------------------------------------------
 # Executables
 # ------------------------------------------------------------

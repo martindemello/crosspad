@@ -2,6 +2,8 @@ open StdLabels
 open Xword.Types
 open Cursor
 open Utils
+open Crosspad_model
+open Model
 
 [@@@ ocaml.warning "-10"]
 
@@ -15,22 +17,22 @@ let check_cache ~cond ~create ~destroy = function
       end
   | None -> create ()
 
-let letter_of_cell = function
-  | Letter c -> c
-  | Rebus r -> r.display_char
-  | _ -> ""
+let bg_of_cell model x y =
+  let open Presenter in
+  match cell_background x y model with
+  | `Black -> `BLACK
+  | `White -> `WHITE
+  | `CursorBlack -> `NAME "dark green"
+  | `CursorWhite -> `NAME "light green"
+  | `CurrentWord -> `NAME "light blue"
+  | `CursorSymmBlack -> `BLACK
+  | `CursorSymmWhite -> `WHITE
 
-let bg_of_cell cell is_cursor =
-  match cell, is_cursor with
-  | Black, false -> `BLACK
-  | Black, true -> `NAME "dark green"
-  | _, false -> `WHITE
-  | _, true -> `NAME "light green"
-
-class xw_widget ~xw ?packing ?show () =
+class xw_widget ~model ?packing ?show () =
   let scale = 30 in
-  let width = xw.cols * scale + 1 in
-  let height = xw.rows * scale + 1 in
+  let id (x : Model.t) = x in
+  let width = !model.xw.cols * scale + 1 in
+  let height = !model.xw.rows * scale + 1 in
   let da = GMisc.drawing_area ~width ~height ?packing ?show () in
   let context = da#misc#create_pango_context in
   let point_to_cell x y =
@@ -39,10 +41,7 @@ class xw_widget ~xw ?packing ?show () =
   in
   object (self)
     inherit GObj.widget_full da#as_widget
-    val rows = xw.rows
-    val cols = xw.cols
-    val mutable cursor = Cursor.make xw.rows xw.cols
-    val mutable dir : word_direction = `Across
+    val model = model
     val mutable size = 0, 0
     val mutable pixmap = None
 
@@ -59,44 +58,6 @@ class xw_widget ~xw ?packing ?show () =
       da#misc#grab_focus ();
       ()
 
-    method toggle_dir =
-      dir <- match dir with `Across -> `Down | `Down -> `Across
-
-    method toggle_black =
-      if Xword.toggle_black ~symmetry:Symm180 xw cursor.x cursor.y then begin
-        Xword.renumber xw |> ignore;
-        self#draw
-      end
-
-    method toggle_bar (d : grid_direction) =
-      if Xword.toggle_bar ~symmetry:Symm180 xw cursor.x cursor.y d then begin
-        Xword.renumber xw |> ignore;
-        self#draw
-      end
-
-    method delete_letter ~bksp =
-      if bksp then begin
-        let d = match dir with `Across -> `Bksp_Ac | `Down -> `Bksp_Dn in
-        self#move_cursor ~wrap:false d
-      end;
-      if Xword.delete_letter xw cursor.x cursor.y then begin
-        Xword.renumber xw |> ignore;
-      end;
-      self#draw
-
-    method set_letter c =
-      let s = Char.uppercase_ascii c |> String.make 1 in
-      Xword.set_cell xw cursor.x cursor.y (Letter s);
-      self#move_cursor ~wrap:false (dir :> direction)
-
-    method move_cursor ?wrap:(wrap=true) (d : direction) =
-      let new_cursor = Cursor.move cursor ~wrap:wrap d in
-      self#set_cursor new_cursor
-
-    method set_cursor new_cursor =
-      cursor <- new_cursor;
-      self#draw
-
     method handle_button_press ev =
       let handled = ref true in
       let _ = match GdkEvent.Button.button ev with
@@ -104,50 +65,61 @@ class xw_widget ~xw ?packing ?show () =
           let x = GdkEvent.Button.x ev in
           let y = GdkEvent.Button.y ev in
           let x, y = point_to_cell x y in
-          self#set_cursor {cursor with x; y}
+          let action = Action.SetCursor (x, y) in
+          model := Controller.update action (!model, id);
         )
       | _ -> handled := false
       in
-      if !handled then
-        da#misc#grab_focus ();
+      if !handled then begin
+        self#draw;
+        da#misc#grab_focus ()
+      end;
       !handled
 
     method handle_key_press ev =
       let open GdkKeysyms in
-      let is_letter k = (Char.code 'a') <= k && k <= (Char.code 'z') in
-      let handled = ref true in
       let state = GdkEvent.Key.state ev in
-      let _ = if List.mem `CONTROL state then
+      let action = if List.mem `CONTROL state then
          match GdkEvent.Key.keyval ev with
-          | k when k = _Left -> self#toggle_bar `Left
-          | k when k = _KP_Left -> self#toggle_bar `Left
-          | k when k = _Right -> self#toggle_bar `Right
-          | k when k = _KP_Right -> self#toggle_bar `Right
-          | k when k = _Up -> self#toggle_bar `Up
-          | k when k = _KP_Up -> self#toggle_bar `Up
-          | k when k = _Down -> self#toggle_bar `Down
-          | k when k = _KP_Down -> self#toggle_bar `Down
-          | _ -> handled := false
+          | k when k = _Left -> Action.ToggleBar `Left
+          | k when k = _KP_Left -> Action.ToggleBar `Left
+          | k when k = _Right -> Action.ToggleBar `Right
+          | k when k = _KP_Right -> Action.ToggleBar `Right
+          | k when k = _Up -> Action.ToggleBar `Up
+          | k when k = _KP_Up -> Action.ToggleBar `Up
+          | k when k = _Down -> Action.ToggleBar `Down
+          | k when k = _KP_Down -> Action.ToggleBar `Down
+          | _ -> Action.Nothing
       else
         match GdkEvent.Key.keyval ev with
-        | k when k = _Left -> self#move_cursor `Left
-        | k when k = _KP_Left -> self#move_cursor `Left
-        | k when k = _Right -> self#move_cursor `Right
-        | k when k = _KP_Right -> self#move_cursor `Right
-        | k when k = _Up -> self#move_cursor `Up
-        | k when k = _KP_Up -> self#move_cursor `Up
-        | k when k = _Down -> self#move_cursor `Down
-        | k when k = _KP_Down -> self#move_cursor `Down
-        | k when k = _space -> self#toggle_black
-        | k when k = _Page_Up -> self#toggle_dir
-        | k when k = _Delete -> self#delete_letter ~bksp:false
-        | k when k = _BackSpace -> self#delete_letter ~bksp:true
-        | k when is_letter k -> self#set_letter (Char.chr k)
-        | _ -> handled := false
+        | k when k = _Left -> Action.MoveCursor `Left
+        | k when k = _KP_Left -> Action.MoveCursor `Left
+        | k when k = _Right -> Action.MoveCursor `Right
+        | k when k = _KP_Right -> Action.MoveCursor `Right
+        | k when k = _Up -> Action.MoveCursor `Up
+        | k when k = _KP_Up -> Action.MoveCursor `Up
+        | k when k = _Down -> Action.MoveCursor `Down
+        | k when k = _KP_Down -> Action.MoveCursor `Down
+        | k when k = _space -> Action.ToggleBlack
+        | k when k = _Page_Up -> Action.ToggleDir
+        | k when k = _Delete -> Action.Delete
+        | k when k = _BackSpace -> Action.Backspace
+        | k -> begin
+           match Presenter.letter_of_code k with
+             | Some s -> Action.SetLetter s
+             | _ -> Action.Nothing
+          end
       in
-      !handled
+      model := Controller.update action (!model, id);
+      if action == Action.Nothing then
+        false
+      else begin
+        self#draw;
+        true
+      end
 
     method draw =
+      let model = !model in
       let {Gtk.x=x0; y=y0; width=width; height=height} =
         da#misc#allocation in
       let _size = (min width height) * 49 / 50 in
@@ -171,47 +143,46 @@ class xw_widget ~xw ?packing ?show () =
         dr#put_layout ~x ~y ~fore:`BLACK layout;
       in
 
-      let write_letter ~row ~col ~cell =
-        match (letter_of_cell cell) with
+      let write_letter ~row ~col =
+        let cell = Xword.get_cell model.xw col row in
+        match (Presenter.letter_of_cell cell) with
         | "" -> ()
         | c -> write_text ~row ~col ~text:c ~pos:`Letter ~font:"sans 12"
       in
 
       let write_number ~row ~col =
-        let num = Xword.get_num xw col row in
-        if num != 0 then begin
-          let text = string_of_int num in
-          write_text ~row ~col ~text ~pos:`Number ~font:"sans 6"
-        end
+        let num = Xword.get_num model.xw col row in
+        match (Presenter.display_num num) with
+        | "" -> ()
+        | c -> write_text ~row ~col ~text:c ~pos:`Number ~font:"sans 6"
       in
 
       dr#set_foreground `WHITE;
       dr#rectangle ~x:0 ~y:0 ~width ~height ~filled:true ();
-      for y = 0 to rows - 1 do
-        for x = 0 to cols - 1 do
-          let cell = Xword.get_cell xw x y in
-          let is_cursor = (x, y) = (cursor.x, cursor.y) in
+      for y = 0 to model.xw.rows - 1 do
+        for x = 0 to model.xw.cols - 1 do
           let top, left = y * scale, x * scale in
           let rect = dr#rectangle ~x:left ~y:top ~width:scale ~height:scale in
           (* cell *)
-          dr#set_foreground (bg_of_cell cell is_cursor);
+          dr#set_foreground (bg_of_cell model x y);
           rect ~filled:true ();
           dr#set_foreground `BLACK;
           rect ~filled:false ();
+
           (* bars *)
-          let sq = Xword.get xw x y in
+          let sq = Xword.get model.xw x y in
           if sq.bar_right then begin
-            let bx = left + scale in
-            dr#rectangle ~x:(bx - 2) ~y:top ~width:2 ~height:scale ~filled:true ()
+            let bx = left + scale - 2 in
+            dr#rectangle ~x:bx ~y:top ~width:2 ~height:scale ~filled:true ()
           end;
           if sq.bar_down then begin
-            let by = top + scale in
-            dr#rectangle ~x:left ~y:(by - 2) ~width:scale ~height:2 ~filled:true ()
+            let by = top + scale - 2 in
+            dr#rectangle ~x:left ~y:by ~width:scale ~height:2 ~filled:true ()
           end;
 
           (* contents *)
           write_number ~row:y ~col:x;
-          write_letter ~row:y ~col:x ~cell
+          write_letter ~row:y ~col:x
         done
       done;
 
@@ -233,41 +204,41 @@ let cluebox_title (dir : word_direction) = match dir with
   | `Across -> "Across"
   | `Down -> "Down"
 
-class clue_widget ~xw ~dir ?packing ?show () =
+class clue_widget ~model ~dir ?packing ?show () =
   let scrolled_win =
     GBin.scrolled_window ?packing ~width:200
       ~hpolicy:`AUTOMATIC ~vpolicy:`AUTOMATIC ()
   in
   let cols = new GTree.column_list in
   let column = cols#add Gobject.Data.string in
-  let model = GTree.list_store cols in
-  let clues = Xword.get_clues xw dir in
+  let list_model = GTree.list_store cols in
+  let clues = Xword.get_clues !model.xw dir in
   let title = cluebox_title dir in
   let clue_col_view = make_cell_view ~column ~title
       ~opts: [ `XALIGN 0.; `YPAD 1 ]
   in
-  let view = GTree.view ~model ~packing:scrolled_win#add () in
+  let view = GTree.view ~model:list_model ~packing:scrolled_win#add () in
   object(self)
     inherit GObj.widget_full scrolled_win#as_widget
 
     initializer
       List.iter ~f:(fun clue ->
-          let row = model#append () in
-          model#set ~row ~column clue)
-        (List.map snd clues);
+          let row = list_model#append () in
+          list_model#set ~row ~column clue)
+        (List.map Presenter.format_clue clues);
       ignore @@ view#append_column clue_col_view
   end
 
-class clues_widget ~xw ?packing ?show () =
+class clues_widget ~model ?packing ?show () =
   let vbox = GPack.vbox ?packing ?show () in
-  let _ac = new clue_widget ~xw ~dir:`Across ~packing:vbox#add ?show () in
-  let _dn = new clue_widget ~xw ~dir:`Down ~packing:vbox#add ?show () in
+  let _ac = new clue_widget ~model ~dir:`Across ~packing:vbox#add ?show () in
+  let _dn = new clue_widget ~model ~dir:`Down ~packing:vbox#add ?show () in
   object(self)
     inherit GObj.widget_full vbox#as_widget
   end
 
 (* Metadata *)
-class metadata_widget ~xw ?packing ?show () =
+class metadata_widget ~model ?packing ?show () =
   let scrolled_win =
     GBin.scrolled_window ?packing
       ~hpolicy:`AUTOMATIC ~vpolicy:`AUTOMATIC ()
@@ -275,24 +246,24 @@ class metadata_widget ~xw ?packing ?show () =
   let cols = new GTree.column_list in
   let key_col = cols#add Gobject.Data.string in
   let val_col = cols#add Gobject.Data.string in
-  let model = GTree.list_store cols in
+  let list_model = GTree.list_store cols in
   let make_view ~column = make_cell_view ~column ~title:""
       ~opts: [ `XALIGN 0.; `YPAD 1 ]
   in
   let key_col_view = make_view key_col in
   let val_col_view = make_view val_col in
-  let view = GTree.view ~model ~packing:scrolled_win#add () in
+  let view = GTree.view ~model:list_model ~packing:scrolled_win#add () in
   object(self)
     inherit GObj.widget_full scrolled_win#as_widget
 
     initializer
       List.iter ~f:(fun (k, v) ->
           let k = string_of_metadata_key k in
-          let row = model#append () in
-          model#set ~row ~column:key_col k;
-          model#set ~row ~column:val_col v;
+          let row = list_model#append () in
+          list_model#set ~row ~column:key_col k;
+          list_model#set ~row ~column:val_col v;
         )
-        xw.metadata;
+        !model.xw.metadata;
       ignore @@ view#append_column key_col_view;
       ignore @@ view#append_column val_col_view
   end
@@ -326,9 +297,10 @@ let () =
     else
       Xword.make 15 15 |> Xword.renumber
   in
-  let _xword = new xw_widget ~packing:fr#add ~xw:xw () in
-  let _clues = new clues_widget ~packing:hbox#add ~xw () in
-  let _meta = new metadata_widget ~packing:vb1#add ~xw () in
+  let model = ref (Model.init xw) in
+  let _xword = new xw_widget ~packing:fr#add ~model () in
+  let _clues = new clues_widget ~packing:hbox#add ~model () in
+  let _meta = new metadata_widget ~packing:vb1#add ~model () in
   let quit = GButton.button ~label:"Quit" ~packing:vbox#pack () in
   ignore @@ quit#connect#clicked ~callback:GMain.quit;
   w#show ();

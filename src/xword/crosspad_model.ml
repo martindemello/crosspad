@@ -1,7 +1,5 @@
 open Xword.Types
 
-type key_direction = [`Left | `Right | `Up | `Down ]
-
 (* Editable clue with a field for notes *)
 type working_clue = {
   number : int;
@@ -89,13 +87,13 @@ module Model = struct
     in
     move_cursor ~wrap:false dir' model
 
-  let movement_key (d : key_direction) model =
+  let movement_key (d : grid_direction) model =
     let dir' : word_direction = match d with
       | `Left | `Right -> `Across
       | `Up | `Down -> `Down
     in
     model
-    |> move_cursor ~wrap:false (d :> direction)
+    |> move_cursor ~wrap:true (d :> direction)
     |> set_current_dir dir'
     |> update_current_word
 
@@ -126,6 +124,16 @@ module Model = struct
     |> advance_cursor
     |> update_current_word
 
+  let toggle_bar model (d : grid_direction) =
+    let xw = model.xw in
+    let x, y = model.cursor.x, model.cursor.y in
+    if Xword.toggle_bar ~symmetry:Symm180 xw x y d then
+      model
+      |> renumber
+      |> update_current_word
+    else
+      model
+
   let set_letter s model =
     model
     |> set_current_letter (Some s)
@@ -144,16 +152,9 @@ module Model = struct
   let init_clue (number, initial_clue) =
     { number; initial_clue; clue = initial_clue; notes = "Notes" }
 
-  let init rows cols =
-    let xw = Xword.make rows cols in
-    let clues = {
-      across = [(1, "hello"); (2, "world")];
-      down = [(10, "foo"); 20, "bar"]
-    }
-    in
-    let xw = { xw with clues } in
+  let init xw =
     { xw;
-      cursor = Cursor.make rows cols;
+      cursor = Cursor.make xw.rows xw.cols;
       current_dir = `Across;
       current_word = CSet.empty;
       clues_ac = List.map init_clue xw.clues.across;
@@ -167,16 +168,26 @@ module Model = struct
     |> renumber
     |> update_current_word
 
+  let new_xw rows cols =
+    let xw = Xword.make rows cols in
+    let clues = {
+      across = [];
+      down = []
+    }
+    in
+    let xw = { xw with clues } in
+    init xw
 end
-
 
 module Action = struct
   type action =
     | SetCursor of int * int
-    | MoveCursor of key_direction
+    | MoveCursor of grid_direction
     | SetDirection of word_direction
+    | ToggleDir
     | SetLetter of string
     | ToggleBlack
+    | ToggleBar of grid_direction
     | Backspace
     | Delete
     | SetClue of word_direction * int
@@ -193,7 +204,9 @@ module Controller = struct
       | SetCursor (x, y) -> set_cursor x y model
       | MoveCursor d -> movement_key d model
       | SetDirection d -> set_current_dir d model
+      | ToggleDir -> toggle_current_dir model
       | ToggleBlack -> toggle_black model
+      | ToggleBar d -> toggle_bar model d
       | SetLetter s -> set_letter s model
       | Backspace -> backspace_letter model
       | Delete -> delete_letter model
@@ -208,6 +221,16 @@ module Presenter = struct
   open Model
   open Cursor
 
+  type background_color =
+    [ `Black
+    | `White
+    | `CursorBlack
+    | `CursorWhite
+    | `CursorSymmBlack
+    | `CursorSymmWhite
+    | `CurrentWord
+    ]
+
   (* Grid display *)
 
   let letter_of_cell = function
@@ -219,21 +242,21 @@ module Presenter = struct
     | 0 -> ""
     | n -> string_of_int n
 
-  let cellstyle x y model =
+  let cell_background x y model =
     let cell = Xword.get_cell model.xw x y in
     let is_cur = model.cursor.x = x && model.cursor.y = y in
     let is_word = CSet.mem (x, y) model.current_word in
     let bg =
       if is_cur then match cell with
-        | Black -> "crosspad-cursor-black"
-        | _ -> "crosspad-cursor-white"
+        | Black -> `CursorBlack
+        | _ -> `CursorWhite
       else if is_word then
-        "crosspad-word"
+        `CurrentWord
       else match cell with
-        | Black -> "crosspad-black"
-        | _ -> "crosspad-white"
+        | Black -> `Black
+        | _ -> `White
     in
-    [bg; "crosspad-square"]
+    bg
 
   (* Input *)
 
@@ -244,22 +267,6 @@ module Presenter = struct
       Some (String.make 1 @@ Char.chr (k - 32))
     else
       None
-
-  let action_of_keyboard_code (key, code) =
-    let open Js_event.Keyboard_code in
-    match key with
-    | Space -> Action.ToggleBlack
-    | ArrowLeft -> Action.MoveCursor `Left
-    | ArrowRight -> Action.MoveCursor `Right
-    | ArrowUp -> Action.MoveCursor `Up
-    | ArrowDown -> Action.MoveCursor `Down
-    | Backspace -> Action.Backspace
-    | Delete -> Action.Delete
-    | _ -> begin
-        match letter_of_code code with
-        | Some s -> Action.SetLetter s
-        | None -> Action.Nothing
-      end
 
   (* Grid accessors *)
 
@@ -284,5 +291,8 @@ module Presenter = struct
   let current_clue dir model = match dir with
     | `Across -> model.current_ac
     | `Down -> model.current_dn
+
+  let format_clue (n, s) =
+    Printf.sprintf "%d. %s" n s
 
 end
