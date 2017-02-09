@@ -79,22 +79,22 @@ let toggle_bar_down xw x y =
   setmap xw x y (fun s -> {s with bar_down = not s.bar_down})
 
 let left_boundary xw x y =
-  x = 0
+  x <= 0
   || is_black xw (x - 1) y
   || has_bar_left xw x y
 
 let right_boundary xw x y =
-  x = xw.cols - 1
+  x >= xw.cols - 1
   || is_black xw (x + 1) y
   || has_bar_right xw x y
 
 let top_boundary xw x y =
-  y = 0
+  y <= 0
   || is_black xw x (y - 1)
   || has_bar_up xw x y
 
 let bottom_boundary xw x y =
-  y = xw.rows - 1
+  y >= xw.rows - 1
   || is_black xw x (y + 1)
   || has_bar_down xw x y
 
@@ -141,18 +141,34 @@ let renumber ?(on_ac=ignore) ?(on_dn=ignore) xw =
 (* collect letters between (x, y) and the boundary in the (dx, dy) direction *)
 let rec collect_word xw x y dir out =
   let (dx, dy) = Cursor.delta (dir :> direction) in
-  if boundary dir xw x y then
+  if is_black xw x y then
     out
+  else if boundary dir xw x y then
+    (x, y) :: out
   else
     collect_word xw (x + dx) (y + dy) dir ((x, y) :: out)
 
 let word_ac xw x y =
-  let out = collect_word xw x y `Left [] in
-  collect_word xw (x + 1) y `Right (List.rev out)
+  if is_black xw x y then
+    []
+  else begin
+    let out = List.rev @@ collect_word xw x y `Left [] in
+    if right_boundary xw x y then
+      out
+    else
+      collect_word xw (x + 1) y `Right out
+  end
 
 let word_dn xw x y =
-  let out = collect_word xw x y `Up [] in
-  collect_word xw x (y + 1) `Down (List.rev out)
+  if is_black xw x y then
+    []
+  else begin
+    let out = List.rev @@ collect_word xw x y `Up [] in
+    if bottom_boundary xw x y then
+      out
+    else
+      collect_word xw x (y + 1) `Down out
+  end
 
 (* Update the 'symbol' field in every rebus square, so that cells
  * with the same solution have the same symbol. Symbols are
