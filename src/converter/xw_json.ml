@@ -12,6 +12,7 @@ open Ezjsonm
  *           cells : [cell],
  *           across : [[int, string]]
  *           down : [[int, string]]
+ *           metadata : [[key, value]]
  *         }
  *)
 
@@ -42,12 +43,14 @@ let json_cell_list xw =
 let write_json xw =
   let cells = json_cell_list xw in
   let clue (n, s) = `A [int n; string s] in
+  let md (k, v) = `A [string (string_of_metadata_key k); string v] in
   dict [
     "rows", int xw.rows;
     "cols", int xw.cols;
     "cells", list id cells;
     "across", list clue xw.clues.across;
-    "down", list clue xw.clues.down
+    "down", list clue xw.clues.down;
+    "metadata", list md xw.metadata
   ]
 
 let error err =

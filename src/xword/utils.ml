@@ -19,6 +19,28 @@ let string_of_metadata_key (k : [< metadata_key]) = match k with
 | `Title -> "Title"
 | `Uniqueid -> "Uniqueid"
 | `Url -> "Url"
+| `Unknown -> "UNRECOGNISED METADATA"
+
+let metadata_key_of_string k = match k with
+| "Annotation" -> `Annotation
+| "Author" -> `Author
+| "Block" -> `Block
+| "Copyright" -> `Copyright
+| "Date" -> `Date
+| "Difficulty" -> `Difficulty
+| "Editor" -> `Editor
+| "Empty" -> `Empty
+| "Explanation" -> `Explanation
+| "Intro" -> `Intro
+| "Notes" -> `Notes
+| "Origin" -> `Origin
+| "Publication" -> `Publication
+| "Publisher" -> `Publisher
+| "Styles" -> `Styles
+| "Title" -> `Title
+| "Uniqueid" -> `Uniqueid
+| "Url" -> `Url
+| _ -> `Unknown
 
 (* map find returning option *)
 let smap_find key map =

@@ -7,11 +7,12 @@ open Yojson.Safe
 (*
  * cell = { x : int, y : int, contents : string }
  *
- * xword = { rows : int, 
- *           cols : int, 
+ * xword = { rows : int,
+ *           cols : int,
  *           cells : [cell],
- *           across : [[n, string]]
- *           down : [[n, string]]
+ *           across : [[n, string]],
+ *           down : [[n, string]],
+ *           metadata : [[key, value]]
  *         }
  *)
 
@@ -41,16 +42,18 @@ let json_grid xw =
   let cells = json_cell_list xw in
   let clue (n, x) = `List [`Int n; `String x] in
   let clues xs = List.map clue xs in
+  let md (k, v) = `List [`String (string_of_metadata_key k); `String v] in
   `Assoc [
     "rows", `Int xw.rows;
     "cols", `Int xw.cols;
     "cells", `List cells;
     "across", `List (clues xw.clues.across);
-    "down", `List (clues xw.clues.down)
+    "down", `List (clues xw.clues.down);
+    "metadata", `List (List.map md xw.metadata)
   ]
 
 let write xword =
-  json_grid xword |> Yojson.Safe.to_string 
+  json_grid xword |> Yojson.Safe.to_string
 
 (* READING *)
 
@@ -65,7 +68,8 @@ type input_xword = {
   cols : int;
   cells : input_cell list;
   across : (int * string) list;
-  down : (int * string) list
+  down : (int * string) list;
+  metadata: (metadata_key * string) list
 }
 
 let rebus_of_string s =
@@ -98,8 +102,15 @@ let unpack_clue (j : json) =
   | `List [`Int n; `String s] -> (n, s)
   | _ -> raise (PuzzleFormatError "Malformed json")
 
+let unpack_metadata (j : json) =
+  match j with
+  | `List [`String k; `String v] -> (metadata_key_of_string k, v)
+  | _ -> raise (PuzzleFormatError "Malformed json")
+
 let unpack_toplevel (js : (string * json) list) =
-  let xw = { rows = 0; cols = 0; cells = []; across = []; down = [] } in
+  let xw = { rows = 0; cols = 0; cells = [];
+             across = []; down = []; metadata = []
+           } in
   let process_field xw (k, v) = match (k, v) with
     | "rows", `Int r -> {xw with rows = r}
     | "cols", `Int c -> {xw with cols = c}
@@ -115,6 +126,10 @@ let unpack_toplevel (js : (string * json) list) =
         let clues = List.map unpack_clue cs in
         { xw with down = clues }
       end
+    | "metadata", `List cs -> begin
+        let md = List.map unpack_metadata cs in
+        { xw with metadata = md }
+      end
     | _ -> raise (PuzzleFormatError "Malformed json")
   in
   List.fold_left process_field xw js
@@ -126,7 +141,11 @@ let unpack_json (j : json) =
 
 let to_xword input =
   let xw = Xword.make input.rows input.cols in
-  let xw = { xw with clues = { across = input.across; down = input.down } } in
+  let xw = { xw with
+             clues = { across = input.across; down = input.down };
+             metadata = input.metadata
+           }
+  in
   let set c = Xword.set_cell xw c.x c.y (cell_of_string c.contents) in
   List.iter set input.cells;
   xw

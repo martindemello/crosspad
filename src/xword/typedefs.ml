@@ -58,6 +58,7 @@ type metadata_key = [
 | `Title
 | `Uniqueid
 | `Url
+| `Unknown
 ]
 
 type xword = {
