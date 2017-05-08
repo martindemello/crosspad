@@ -39,25 +39,25 @@ type rotation = R0 | R1 | R2 | R3
 
 (* Metadata fields supported by ipuz *)
 
-type metadata_key = 
-[ `Copyright
-| `Publisher
-| `Publication
-| `Url
-| `Uniqueid
-| `Title
-| `Intro
-| `Explanation
+type metadata_key = [
 | `Annotation
 | `Author
-| `Editor
-| `Date
-| `Notes
-| `Difficulty
-| `Origin
 | `Block
+| `Copyright
+| `Date
+| `Difficulty
+| `Editor
 | `Empty
+| `Explanation
+| `Intro
+| `Notes
+| `Origin
+| `Publication
+| `Publisher
 | `Styles
+| `Title
+| `Uniqueid
+| `Url
 ]
 
 type xword = {
@@ -82,6 +82,7 @@ type converter_input = {
 }
 
 exception PuzzleFormatError of string
+exception InternalError of string
 
 (* Plugin interfaces *)
 

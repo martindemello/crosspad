@@ -1,6 +1,41 @@
 open Printf
 open Xword.Types
 open Utils
+open Puz_match
+
+type puzzle = {
+  version: int;
+  width: int;
+  height: int;
+  metadata: (metadata_key * string) list;
+  grid: string list;
+  across: string list;
+  down: string list;
+  rebus: string
+}
+
+let new_puzzle = {
+  version = 0;
+  width = 0;
+  height = 0;
+  metadata = [];
+  grid = [];
+  across = [];
+  down = [];
+  rebus = "";
+}
+
+type sections = [
+| `Title
+| `Author
+| `Copyright
+| `Notes
+| `Size
+| `Grid
+| `Rebus
+| `Across
+| `Down
+]
 
 let write_solution xw =
   let fmt = function
@@ -27,6 +62,7 @@ let write_rebus xw =
 let write xw =
   let meta = Xword.metadata xw in
   let size = Printf.sprintf "%dx%d" xw.rows xw.cols in
+  let header = "<ACROSS PUZZLE V2>\n" in
   let sections = [
     "TITLE", meta `Title;
     "AUTHOR", meta `Author;
@@ -42,9 +78,9 @@ let write xw =
       not (is_empty_string v)) sections in
   let ss = List.map (fun (k, v) ->
       Printf.sprintf "<%s>\n%s" k v) sections in
-  (unlines ss) ^ "\n"
+  header ^ (unlines ss) ^ "\n"
 
-let read_version s = function
+let read_version = function
   | s when s = "<ACROSS PUZZLE>" -> 1
   | s when s = "<ACROSS PUZZLE V2>" -> 2
   | s when s = "<ACROSS DEBUG>" -> 3
@@ -62,39 +98,100 @@ let sections = [
   ("DOWN", `Down);
 ]
 
-let parse_section s = list_assoc s sections
-
-let match_text_section s = match parse_section s with
-  None -> false
-  | Some s -> begin
-      match s with 
-      | `Title | `Author | `Copyright | `Notes -> true
-      |_ -> false
-    end
-
 let read_section (lines : string list) =
-  let [@ ocaml.warning "-8"] header :: rest = lines in
-  let section = parse_section header in
-  match section with
-  | None -> raise (PuzzleFormatError ("Unrecognised section " ^ header))
-  | Some s -> (s, rest)
-
-(*
-let get_metadata sections =
-  let out = ref [] in
-  let get_meta s = match parse_section s with
-    | Some section -> out := (s, section) :: !out
-    | None -> ()
+  let header, rest = match lines with
+    | [] -> raise (InternalError "Internal error in acrosslite text reader")
+    | x :: xs -> (x, xs)
   in
-  List.iter ~f:get_meta [`Title; `Author; `Copyright; `Notes];
-  out
-   *)
+  let error = PuzzleFormatError ("Unrecognised section " ^ header) in
+  let section = match_text_section header in
+  let (s, rest) = match section with
+  | None -> raise error
+  | Some s -> (s, rest)
+  in
+  match list_assoc s sections with
+  | None -> raise error
+  | Some k -> (k, s, rest)
+
+let add_metadata puzzle key contents =
+  (*let key = string_of_metadata_key key in*)
+  let m = (key, contents) :: puzzle.metadata in
+  { puzzle with metadata = m }
+
+let parse_size s =
+  match match_text_size s with
+  | Some (x, y) -> (x, y)
+  | None -> raise (PuzzleFormatError ("Invalid size " ^ s))
+
+let single_line header contents = match contents with
+  | [x] -> x
+  | _ -> raise (PuzzleFormatError ("Invalid contents of section " ^ header))
+
+let parse_section puzzle (key, header, contents) =
+  let single_line = single_line header in
+  match key with
+  | (`Title | `Author | `Copyright | `Notes) as k ->
+    add_metadata puzzle k (single_line contents)
+  | `Size -> begin
+      let (rows, cols) = parse_size (single_line contents) in
+      { puzzle with width = cols ; height = rows }
+    end
+  | `Grid -> { puzzle with grid = contents }
+  | `Rebus -> { puzzle with rebus = single_line contents }
+  | `Across -> { puzzle with across = contents }
+  | `Down -> { puzzle with down = contents }
+
+
+(* puzzle -> xword conversion *)
+
+let cell_of_char c = match c with
+  | '.' -> Black
+  | ' ' -> Empty
+  | c  -> Letter (string_of_char c)
+
+let unpack_solution xw puzzle =
+  let s = Array.of_list puzzle.grid in
+  for y = 0 to xw.rows - 1 do
+    for x = 0 to xw.cols - 1 do
+      let r = s.(y) in
+      let cell = cell_of_char r.[x] in
+      Xword.set_cell xw x y cell
+    done
+  done
+
+let unpack_clues xw puzzle =
+  let ac_clues = Array.of_list puzzle.across in
+  let dn_clues = Array.of_list puzzle.down in
+  let ac = ref [] in
+  let dn = ref [] in
+  let i_ac = ref 0 in
+  let i_dn = ref 0 in
+  ignore @@ Xword.renumber
+    ~on_ac:(fun n -> ac := (!i_ac + 1, ac_clues.(!i_ac)) :: !ac; i_ac := !i_ac + 1)
+    ~on_dn:(fun n -> dn := (!i_dn + 1, dn_clues.(!i_dn)) :: !dn; i_dn := !i_dn + 1)
+    xw;
+  xw.clues.across <- List.rev !ac;
+  xw.clues.down <- List.rev !dn
+
+let unpack_metadata xw p =
+  xw.Xword.Types.metadata <- p.metadata
+
+let xword_of_puzzle puzzle =
+  let xw = Xword.make puzzle.height puzzle.width in
+  unpack_solution xw puzzle;
+  unpack_clues xw puzzle;
+  unpack_metadata xw puzzle;
+  xw
 
 let read data =
-  let [@ ocaml.warning "-8"] v :: lines = split_lines data in
+  let v, lines = match (split_lines data) with
+    | [] -> raise (PuzzleFormatError "Could not read input")
+    | x :: xs -> (x, xs)
+  in
   let _version = read_version v in
   let sections = list_group lines ~break:(fun x y ->
-     is_some (parse_section x))
+     is_some (match_text_section x))
   in
   let sections = List.map read_section sections in
-  sections
+  let puz = List.fold_left parse_section new_puzzle sections in
+  xword_of_puzzle puz

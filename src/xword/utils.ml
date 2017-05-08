@@ -1,25 +1,24 @@
 open Typedefs
 
-let string_of_metadata_key = function
-| `Copyright -> "Copyright"
-| `Publisher -> "Publisher"
-| `Publication -> "Publication"
-| `Url -> "Url"
-| `Uniqueid -> "Uniqueid"
-| `Title -> "Title"
-| `Intro -> "Intro"
-| `Explanation -> "Explanation"
+let string_of_metadata_key (k : [< metadata_key]) = match k with
 | `Annotation -> "Annotation"
 | `Author -> "Author"
-| `Editor -> "Editor"
-| `Date -> "Date"
-| `Notes -> "Notes"
-| `Difficulty -> "Difficulty"
-| `Origin -> "Origin"
 | `Block -> "Block"
+| `Copyright -> "Copyright"
+| `Date -> "Date"
+| `Difficulty -> "Difficulty"
+| `Editor -> "Editor"
 | `Empty -> "Empty"
+| `Explanation -> "Explanation"
+| `Intro -> "Intro"
+| `Notes -> "Notes"
+| `Origin -> "Origin"
+| `Publication -> "Publication"
+| `Publisher -> "Publisher"
 | `Styles -> "Styles"
-| _ -> "UNKNOWN"
+| `Title -> "Title"
+| `Uniqueid -> "Uniqueid"
+| `Url -> "Url"
 
 (* map find returning option *)
 let smap_find key map =
