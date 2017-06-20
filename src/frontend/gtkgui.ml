@@ -289,11 +289,13 @@ let () =
   let vb1 = GPack.vbox ~packing:(hbox#pack ~expand:false) () in
   let fr = GBin.frame ~border_width:3 ~shadow_type:`IN
       ~packing:(vb1#pack ~expand:false) () in
+  let solve_mode = true in
   let xw =
     if Array.length Sys.argv > 1 then
       let fname = Sys.argv.(1) in
       let input = { name = fname; format = "across-lite-binary" } in
-      Converter.read_file input
+      let x = Converter.read_file input in
+      if solve_mode then Xword.clear_fill x else x
     else
       Xword.make 15 15 |> Xword.renumber
   in

@@ -323,6 +323,15 @@ let set_letter xw x y s =
   | Black -> false
   | _ -> set_cell xw x y (Letter s); true
 
+(* clear fill *)
+let clear_fill xw =
+  for y = 0 to xw.rows - 1 do
+    for x = 0 to xw.cols - 1 do
+      ignore @@ delete_letter xw x y
+    done
+  done;
+  xw
+
 (* Get and set metadata *)
 
 let metadata xw k =
