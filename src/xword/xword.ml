@@ -17,10 +17,17 @@ let make rows cols =
     rows = rows;
     cols = cols;
     grid = Array.make_matrix rows cols empty_square;
+    solution = Array.make_matrix rows cols empty_square;
     clues = { across = []; down = [] };
     metadata = []
   }
 
+(* solution *)
+let get_solution xw x y = xw.solution.(y).(x)
+
+let set_solution xw x y s = xw.solution.(y).(x) <- s
+
+(* grid *)
 let get xw x y = xw.grid.(y).(x)
 
 let set xw x y s = xw.grid.(y).(x) <- s
@@ -331,6 +338,18 @@ let clear_fill xw =
     done
   done;
   xw
+
+(* for solving mode, we load the grid and copy it to the solution *)
+let copy_to_solution xw =
+  for y = 0 to xw.rows - 1 do
+    for x = 0 to xw.cols - 1 do
+      set_solution xw x y (get xw x y)
+    done
+  done;
+  xw
+
+let init_solve_mode xw =
+  copy_to_solution xw |> clear_fill
 
 (* Get and set metadata *)
 

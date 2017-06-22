@@ -295,7 +295,7 @@ let () =
       let fname = Sys.argv.(1) in
       let input = { name = fname; format = "across-lite-binary" } in
       let x = Converter.read_file input in
-      if solve_mode then Xword.clear_fill x else x
+      if solve_mode then Xword.init_solve_mode x else x
     else
       Xword.make 15 15 |> Xword.renumber
   in

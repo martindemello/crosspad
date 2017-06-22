@@ -61,10 +61,14 @@ type metadata_key = [
 | `Unknown
 ]
 
+(* grid is mutable, and holds the state of construction/solving.
+ * solution is conceptually immutable; in solving mode it holds
+ * the correct fill and is initialised at file load time *)
 type xword = {
   rows : int;
   cols : int;
   grid : square array array;
+  solution : square array array;
   clues : clues;
   mutable metadata : (metadata_key * string) list;
 }
