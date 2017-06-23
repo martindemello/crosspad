@@ -37,6 +37,8 @@ module Model = struct
     current_dn : int;
     symmetry : symmetry;
     grid_locked : bool;
+    file : file;
+    edit_mode : edit_mode;
     debug : string
   }
 
@@ -163,6 +165,8 @@ module Model = struct
       current_dn = 0;
       symmetry = Symm180;
       grid_locked = false;
+      file = { name = ""; format = ""};
+      edit_mode = `Edit;
       debug = ""
     }
     |> renumber

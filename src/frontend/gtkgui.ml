@@ -28,7 +28,7 @@ let bg_of_cell model x y =
   | `CursorSymmBlack -> `BLACK
   | `CursorSymmWhite -> `WHITE
 
-class xw_widget ~model ?packing ?show () =
+class grid_widget ~model ?packing ?show () =
   let scale = 30 in
   let id (x : Model.t) = x in
   let width = !model.xw.cols * scale + 1 in
@@ -187,7 +187,11 @@ class xw_widget ~model ?packing ?show () =
       done;
 
       (new GDraw.drawable da#misc#window)#put_pixmap ~x:0 ~y:0 dr#pixmap
+
+    method update =
+      self#draw
   end
+
 
 let make_cell_view ~column ~title ~opts =
   let renderer = GTree.cell_renderer_text opts in
@@ -198,6 +202,7 @@ let make_cell_view ~column ~title ~opts =
        let str = model#get ~row ~column in
        renderer#set_properties [ `TEXT (utf8 str) ]);
   col
+
 
 (* Clues *)
 let cluebox_title (dir : word_direction) = match dir with
@@ -212,7 +217,6 @@ class clue_widget ~model ~dir ?packing ?show () =
   let cols = new GTree.column_list in
   let column = cols#add Gobject.Data.string in
   let list_model = GTree.list_store cols in
-  let clues = Xword.get_clues !model.xw dir in
   let title = cluebox_title dir in
   let clue_col_view = make_cell_view ~column ~title
       ~opts: [ `XALIGN 0.; `YPAD 1 ]
@@ -222,19 +226,29 @@ class clue_widget ~model ~dir ?packing ?show () =
     inherit GObj.widget_full scrolled_win#as_widget
 
     initializer
+      self#update;
+      ignore @@ view#append_column clue_col_view
+
+    method update =
+      let clues = Xword.get_clues !model.xw dir in
+      list_model#clear ();
       List.iter ~f:(fun clue ->
           let row = list_model#append () in
           list_model#set ~row ~column clue)
-        (List.map Presenter.format_clue clues);
-      ignore @@ view#append_column clue_col_view
+        (List.map Presenter.format_clue clues)
   end
+
 
 class clues_widget ~model ?packing ?show () =
   let vbox = GPack.vbox ?packing ?show () in
-  let _ac = new clue_widget ~model ~dir:`Across ~packing:vbox#add ?show () in
-  let _dn = new clue_widget ~model ~dir:`Down ~packing:vbox#add ?show () in
+  let ac = new clue_widget ~model ~dir:`Across ~packing:vbox#add ?show () in
+  let dn = new clue_widget ~model ~dir:`Down ~packing:vbox#add ?show () in
   object(self)
     inherit GObj.widget_full vbox#as_widget
+
+    method update =
+      ac#update;
+      dn#update
   end
 
 (* Metadata *)
@@ -257,53 +271,95 @@ class metadata_widget ~model ?packing ?show () =
     inherit GObj.widget_full scrolled_win#as_widget
 
     initializer
+      self#update;
+      ignore @@ view#append_column key_col_view;
+      ignore @@ view#append_column val_col_view
+
+    method update =
       List.iter ~f:(fun (k, v) ->
           let k = string_of_metadata_key k in
           let row = list_model#append () in
           list_model#set ~row ~column:key_col k;
           list_model#set ~row ~column:val_col v;
         )
-        !model.xw.metadata;
-      ignore @@ view#append_column key_col_view;
-      ignore @@ view#append_column val_col_view
+        !model.xw.metadata
   end
 
-let add_file_menu menubar =
-  let open GdkKeysyms in
+let file_dialog ~title ~callback ?filename () =
+  let sel =
+    GWindow.file_selection ~title ~modal:true ?filename () in
+  ignore @@ sel#cancel_button#connect#clicked ~callback:sel#destroy;
+  ignore @@ sel#ok_button#connect#clicked ~callback:
+    begin fun () ->
+      let name = sel#filename in
+      sel#destroy ();
+      callback name
+    end;
+  sel#show ()
 
+
+class xword_widget ?packing ?show ~model () =
+  let hbox = GPack.hbox ?packing ?show () in
+  let vb1 = GPack.vbox ~packing:(hbox#pack ~expand:false) () in
+  let fr = GBin.frame ~border_width:3 ~shadow_type:`IN
+      ~packing:(vb1#pack ~expand:false) () in
+  let grid = new grid_widget ~packing:fr#add ~model () in
+  let clues = new clues_widget ~packing:hbox#add ~model () in
+  let meta = new metadata_widget ~packing:vb1#add ~model () in
+  object(self)
+    inherit GObj.widget_full hbox#as_widget
+
+    initializer
+      self#update
+
+    method load_file mode fname =
+      let input = { name = fname; format = "across-lite-binary" } in
+      let x = Converter.read_file input in
+      let xw = match mode with
+        | `Edit -> x
+        | `Solve -> Xword.init_solve_mode x
+      in
+      model := {(Model.init xw) with file = input; edit_mode = mode};
+      self#update
+
+    method open_edit () =
+      file_dialog ~title:"Open" ~callback:(self#load_file `Edit) ()
+
+    method open_solve () =
+      file_dialog ~title:"Open" ~callback:(self#load_file `Solve) ()
+
+    method update =
+      grid#update;
+      clues#update;
+      meta#update
+  end
+
+(* top level ui *)
+
+let add_file_menu xword menubar =
+  let open GdkKeysyms in
   let factory = new GMenu.factory menubar in
   let accel_group = factory#accel_group in
   let file_menu = factory#add_submenu "File" in
   let factory = new GMenu.factory file_menu ~accel_group in
-  ignore @@ factory#add_item "Quit" ~key:_Q ~callback: GMain.quit
+  ignore @@ factory#add_item "Quit" ~key:_Q ~callback: GMain.quit;
+  ignore @@ factory#add_item "Open (Edit mode)" ~key:_O ~callback:xword#open_edit;
+  ignore @@ factory#add_item "Open (Solve mode)" ~key:_P ~callback:xword#open_solve
 
-let () =
+let make_ui model =
   let _locale = GMain.init ~setlocale:true () in
-  let w = GWindow.window () in
-  ignore @@ w#connect#destroy ~callback:GMain.quit;
-  let vbox = GPack.vbox ~packing:w#add () in
+  let window = GWindow.window () in
+  ignore @@ window#connect#destroy ~callback:GMain.quit;
+  let vbox = GPack.vbox ~packing:window#add () in
   let menubar = GMenu.menu_bar ~packing:(vbox#pack ~expand:false) () in
-  let _ = add_file_menu menubar in
-
-  let hbox = GPack.hbox ~packing:vbox#add () in
-  let vb1 = GPack.vbox ~packing:(hbox#pack ~expand:false) () in
-  let fr = GBin.frame ~border_width:3 ~shadow_type:`IN
-      ~packing:(vb1#pack ~expand:false) () in
-  let solve_mode = true in
-  let xw =
-    if Array.length Sys.argv > 1 then
-      let fname = Sys.argv.(1) in
-      let input = { name = fname; format = "across-lite-binary" } in
-      let x = Converter.read_file input in
-      if solve_mode then Xword.init_solve_mode x else x
-    else
-      Xword.make 15 15 |> Xword.renumber
-  in
-  let model = ref (Model.init xw) in
-  let _xword = new xw_widget ~packing:fr#add ~model () in
-  let _clues = new clues_widget ~packing:hbox#add ~model () in
-  let _meta = new metadata_widget ~packing:vb1#add ~model () in
+  let xword = new xword_widget ~packing:vbox#add ~model () in
+  let _file_menu = add_file_menu xword menubar in
   let quit = GButton.button ~label:"Quit" ~packing:vbox#pack () in
   ignore @@ quit#connect#clicked ~callback:GMain.quit;
-  w#show ();
+  window
+
+let () =
+  let model = ref (Model.init (Xword.make 15 15)) in
+  let window = make_ui model in
+  window#show ();
   GMain.main ()

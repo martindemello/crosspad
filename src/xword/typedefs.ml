@@ -37,6 +37,8 @@ type symmetry = SymmNone | Symm90 | Symm180
 (* Grid rotational symmetry in quarter turns *)
 type rotation = R0 | R1 | R2 | R3
 
+type edit_mode = [`Edit | `Solve]
+
 (* Metadata fields supported by ipuz *)
 
 type metadata_key = [
