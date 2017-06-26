@@ -46,12 +46,12 @@ class grid_widget ~model ?packing ?show () =
     val mutable pixmap = None
 
     initializer
-      ignore @@ da#event#connect#expose ~callback:(fun _ -> self#draw; true);
-      ignore @@ da#event#connect#key_press
+      da#event#connect#expose ~callback:(fun _ -> self#draw; true);
+      da#event#connect#key_press
         ~callback:(fun ev -> self#handle_key_press ev);
 
       da#event#add [`BUTTON_PRESS];
-      ignore @@ da#event#connect#button_press
+      da#event#connect#button_press
         ~callback:(fun ev -> self#handle_button_press ev);
 
       da#misc#set_can_focus true;
@@ -227,7 +227,8 @@ class clue_widget ~model ~dir ?packing ?show () =
 
     initializer
       self#update;
-      ignore @@ view#append_column clue_col_view
+      view#append_column clue_col_view;
+      ()
 
     method update =
       let clues = Xword.get_clues !model.xw dir in
@@ -272,8 +273,9 @@ class metadata_widget ~model ?packing ?show () =
 
     initializer
       self#update;
-      ignore @@ view#append_column key_col_view;
-      ignore @@ view#append_column val_col_view
+      view#append_column key_col_view;
+      view#append_column val_col_view;
+      ()
 
     method update =
       List.iter ~f:(fun (k, v) ->
@@ -288,8 +290,8 @@ class metadata_widget ~model ?packing ?show () =
 let file_dialog ~title ~callback ?filename () =
   let sel =
     GWindow.file_selection ~title ~modal:true ?filename () in
-  ignore @@ sel#cancel_button#connect#clicked ~callback:sel#destroy;
-  ignore @@ sel#ok_button#connect#clicked ~callback:
+  sel#cancel_button#connect#clicked ~callback:sel#destroy;
+  sel#ok_button#connect#clicked ~callback:
     begin fun () ->
       let name = sel#filename in
       sel#destroy ();
@@ -342,20 +344,20 @@ let add_file_menu xword menubar =
   let accel_group = factory#accel_group in
   let file_menu = factory#add_submenu "File" in
   let factory = new GMenu.factory file_menu ~accel_group in
-  ignore @@ factory#add_item "Quit" ~key:_Q ~callback: GMain.quit;
-  ignore @@ factory#add_item "Open (Edit mode)" ~key:_O ~callback:xword#open_edit;
-  ignore @@ factory#add_item "Open (Solve mode)" ~key:_P ~callback:xword#open_solve
+  factory#add_item "Quit" ~key:_Q ~callback: GMain.quit;
+  factory#add_item "Open (Edit mode)" ~key:_O ~callback:xword#open_edit;
+  factory#add_item "Open (Solve mode)" ~key:_P ~callback:xword#open_solve
 
 let make_ui model =
   let _locale = GMain.init ~setlocale:true () in
   let window = GWindow.window () in
-  ignore @@ window#connect#destroy ~callback:GMain.quit;
+  window#connect#destroy ~callback:GMain.quit;
   let vbox = GPack.vbox ~packing:window#add () in
   let menubar = GMenu.menu_bar ~packing:(vbox#pack ~expand:false) () in
   let xword = new xword_widget ~packing:vbox#add ~model () in
   let _file_menu = add_file_menu xword menubar in
   let quit = GButton.button ~label:"Quit" ~packing:vbox#pack () in
-  ignore @@ quit#connect#clicked ~callback:GMain.quit;
+  quit#connect#clicked ~callback:GMain.quit;
   window
 
 let () =

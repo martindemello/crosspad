@@ -8,4 +8,6 @@ B _build/src/xword
 B _build/src/converter
 B _build/src/frontend
 
+FLG -w -10
+
 PKG yojson containers bitstring angstrom opium lablgtk2 cmdliner
