@@ -2,7 +2,7 @@
 <**/*_bin.*>: pkg_bitstring.syntax, syntax(bitstring)
 
 # OASIS_START
-# DO NOT EDIT (digest: c37daa814c065ebb59a085fad043afb0)
+# DO NOT EDIT (digest: e2e45760ed1ee6c6ededf26b254bab52)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -19,11 +19,6 @@ true: annot, bin_annot
 "_darcs": not_hygienic
 # Library xword
 "src/xword/xword.cmxs": use_xword
-<src/xword/*.ml{,i,y}>: pkg_angstrom
-<src/xword/*.ml{,i,y}>: pkg_containers
-<src/xword/*.ml{,i,y}>: pkg_ezjsonm
-<src/xword/*.ml{,i,y}>: pkg_str
-<src/xword/*.ml{,i,y}>: pkg_yojson
 # Library converter
 "src/converter/converter.cmxs": use_converter
 <src/converter/*.ml{,i,y}>: pkg_angstrom
@@ -33,6 +28,14 @@ true: annot, bin_annot
 <src/converter/*.ml{,i,y}>: pkg_str
 <src/converter/*.ml{,i,y}>: pkg_yojson
 <src/converter/*.ml{,i,y}>: use_xword
+# Library crosspad-model
+"src/xword/crosspad-model.cmxs": use_crosspad-model
+<src/xword/*.ml{,i,y}>: pkg_angstrom
+<src/xword/*.ml{,i,y}>: pkg_containers
+<src/xword/*.ml{,i,y}>: pkg_ezjsonm
+<src/xword/*.ml{,i,y}>: pkg_str
+<src/xword/*.ml{,i,y}>: pkg_yojson
+<src/xword/*.ml{,i,y}>: use_xword
 # Executable xwconvert
 "src/frontend/cli.native": pkg_angstrom
 "src/frontend/cli.native": pkg_bitstring
@@ -54,6 +57,7 @@ true: annot, bin_annot
 "src/frontend/gtkgui.native": pkg_str
 "src/frontend/gtkgui.native": pkg_yojson
 "src/frontend/gtkgui.native": use_converter
+"src/frontend/gtkgui.native": use_crosspad-model
 "src/frontend/gtkgui.native": use_xword
 <src/frontend/*.ml{,i,y}>: pkg_angstrom
 <src/frontend/*.ml{,i,y}>: pkg_bitstring
@@ -64,5 +68,6 @@ true: annot, bin_annot
 <src/frontend/*.ml{,i,y}>: pkg_str
 <src/frontend/*.ml{,i,y}>: pkg_yojson
 <src/frontend/*.ml{,i,y}>: use_converter
+<src/frontend/*.ml{,i,y}>: use_crosspad-model
 <src/frontend/*.ml{,i,y}>: use_xword
 # OASIS_STOP

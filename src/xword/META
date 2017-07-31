@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 607d1005dc293aa026f3a9eecb7fa500)
+# DO NOT EDIT (digest: c500ea7455918d05c0ec03a37011b54b)
 version = "0.1"
 description =
 "Crossword grid manipulation library, file format converter and viewer"
@@ -7,6 +7,16 @@ requires = "angstrom containers ezjsonm str yojson"
 archive(byte) = "xword.cma"
 archive(byte, plugin) = "xword.cma"
 exists_if = "xword.cma"
+package "crosspad-model" (
+ version = "0.1"
+ description =
+ "Crossword grid manipulation library, file format converter and viewer"
+ requires = "xword"
+ archive(byte) = "crosspad-model.cma"
+ archive(byte, plugin) = "crosspad-model.cma"
+ exists_if = "crosspad-model.cma"
+)
+
 package "convert" (
  version = "0.1"
  description =

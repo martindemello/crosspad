@@ -83,7 +83,8 @@ Executable crosspad
     lablgtk2,
     lablgtk2.auto-init,
     xword,
-    xword.convert
+    xword.convert,
+    xword.crosspad-model
   Path: src/frontend
   Install: true
   BuildTools: ocamlbuild
