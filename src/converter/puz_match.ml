@@ -46,7 +46,7 @@ let text_size = lift2 int_pair
     (digits <* eof)
 
 let run_match p s =
-  match parse_only p (`String s) with
+  match parse_string p s with
   | Result.Ok x -> Some x
   | _ -> None
 

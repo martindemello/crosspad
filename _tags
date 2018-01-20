@@ -1,5 +1,5 @@
 # preprocessing
-<**/*_bin.*>: pkg_bitstring.syntax, syntax(bitstring)
+<**/*_bin.*>: pkg_bitstring.ppx
 
 # OASIS_START
 # DO NOT EDIT (digest: e2e45760ed1ee6c6ededf26b254bab52)

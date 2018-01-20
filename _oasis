@@ -38,6 +38,7 @@ Library converter
   BuildDepends:
     angstrom,
     bitstring,
+    bitstring.ppx,
     containers,
     xword
   Path: src/converter

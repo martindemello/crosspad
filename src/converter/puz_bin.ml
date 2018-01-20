@@ -6,8 +6,8 @@ let file_magic = "ACROSS&DOWN"
 (* Read header from binary .puz *)
 let read_header data start =
   let s = Bitstring.bitstring_of_string data in
-  bitmatch s with
-  | {
+  match%bitstring s with
+  | {|
       preamble: start * 8 : string;
       checksum: 2 * 8;
       magic: 0xc * 8 : string;
@@ -23,7 +23,7 @@ let read_header data start =
       n_clues: 16 : littleendian;
       puzzle_type: 16 : littleendian;
       scrambled_tag : 16 : littleendian
-  } ->
+  |} ->
     { new_puzzle with preamble; width; height; version; n_clues }
 
 
@@ -31,12 +31,12 @@ let read_header data start =
 let read_extensions (s : string_io) =
   let read_extension_header data =
     let s = Bitstring.bitstring_of_string data in
-    bitmatch s with
-    | {
+    match%bitstring s with
+    | {|
         section: 4 * 8 : string;
         length: 16 : littleendian;
         checksum: 16 : littleendian
-    } -> { data = ""; section; length; checksum }
+    |} -> { data = ""; section; length; checksum }
   in
 
   let read_extension s =
@@ -54,24 +54,24 @@ let read_extensions (s : string_io) =
 
 (* Write out extensions *)
 let write_extension_header e =
-  let b = BITSTRING {
+  let%bitstring b = {|
     e.section : 4 * 8 : string;
     e.length : 16 : littleendian;
     e.checksum : 16 : littleendian
-  } in
+  |} in
   Bitstring.string_of_bitstring b
 
 (* Write out puzzle *)
 let header_checksum p =
   let scrambled_tag = 0 in
   let puzzle_type = 0x0001 in
-  let b = BITSTRING {
+  let%bitstring b = {|
       p.width : 8;
       p.height : 8;
       p.n_clues: 16 : littleendian;
       puzzle_type: 16 : littleendian;
       scrambled_tag : 16 : littleendian
-    }
+    |}
   in
   let s = Bitstring.string_of_bitstring b in
   checksum_of_string s
@@ -128,7 +128,7 @@ let write_header p =
   let reserved1c = 0 in
   let reserved20 = String.make 12 '\000' in
   let version = pad0 p.version 4 in
-  let b = BITSTRING {
+  let%bitstring b = {|
       ck.global: 2 * 8;
       s0 file_magic: 0xc * 8 : string;
       ck.cib: 16 : littleendian;
@@ -143,5 +143,5 @@ let write_header p =
       p.n_clues: 16 : littleendian;
       p.puzzle_type: 16 : littleendian;
       p.scrambled_tag : 16 : littleendian
-  } in
+    |} in
   Bitstring.string_of_bitstring b
