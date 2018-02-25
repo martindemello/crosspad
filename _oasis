@@ -1,6 +1,6 @@
 OASISFormat: 0.4
 Name:        crosspad
-Version:     0.1
+Version:     0.2
 Authors:     Martin DeMello <martindemello@gmail.com>
 Homepage:    https://github.com/martindemello/crosspad
 License:     MIT
@@ -47,7 +47,7 @@ Library converter
   Modules: Converter
   InternalModules:
     Puz, Puz_bin, Puz_match, Puz_types, Puz_utils, Ac_text,
-    Xw_json, Json_reader
+    Xw_json, Json_reader, Reddit
   CompiledObject: byte
 
 Library crosspad-model
