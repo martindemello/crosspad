@@ -50,7 +50,6 @@ class string_io _string =
         s
       with
       | Not_found -> raise (PuzzleFormatError "Could not read string")
-
   end
 
 (* binary string functions *)

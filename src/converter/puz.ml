@@ -85,9 +85,9 @@ let read_puzzle data =
      Use the magic string as a start marker and save the preamble for
      round-tripping *)
   let start =
-    let file_magic_rx = Str.regexp_string Puz_bin.file_magic in
-    try (Str.search_forward file_magic_rx data 0) - 2
-    with Not_found -> raise (PuzzleFormatError "Could not find start of puzzle")
+    match CCString.find ~sub:Puz_bin.file_magic data with
+    | -1 -> raise (PuzzleFormatError "Could not find start of puzzle")
+    | s -> s - 2
   in
   let s = new string_io data in
   let header = s#read (start + 0x34) in

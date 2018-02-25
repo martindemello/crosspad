@@ -55,7 +55,7 @@ let assoc_in_list xs key =
   list_assoc key xs
 
 let split_lines x =
-  Str.split (Str.regexp "\n") x
+  CCString.lines x
 
 let unlines xs =
   String.concat "\n" xs
@@ -90,3 +90,7 @@ let list_group ~break xs =
   in
   let out = lg xs [] in
   List.map List.rev out |> List.rev
+
+let lists_of_grid (xw : xword) : square list list  =
+  let open CCArray in
+  map to_list xw.grid |> to_list

@@ -12,7 +12,9 @@ let readers = [
 let writers = [
   "across-lite-binary", (module Puz : WRITER);
   "across-lite-text", (module Ac_text : WRITER);
-  "json", (module Json : WRITER)
+  "json", (module Json : WRITER);
+  "reddit-filled", (module Reddit.Filled : WRITER);
+  "reddit-blank", (module Reddit.Blank : WRITER)
 ]
 
 let keys xs = List.map fst xs |> List.sort compare
