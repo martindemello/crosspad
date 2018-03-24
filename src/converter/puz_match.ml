@@ -1,22 +1,6 @@
 open Puz_types
 open Angstrom
-
-module P = struct
-  let is_digit = function 
-    | '0' .. '9' -> true
-    | _ -> false
-
-  let is_alpha = function 
-    | '0' .. '9' | 'a' .. 'z' | 'A' .. 'Z' -> true
-    | _ -> false
-end
-
-let space = char ' '
-let digit = satisfy P.is_digit
-let digits = take_while1 P.is_digit
-let nul = char '\000'
-let alphas = take_while1 P.is_alpha
-let eof = end_of_input
+open Text_match
 
 let int_pair x y = (int_of_string x, int_of_string y)
 
@@ -44,11 +28,6 @@ let text_section_header =
 let text_size = lift2 int_pair
     (digits <* (char 'x'))
     (digits <* eof)
-
-let run_match p s =
-  match parse_string p s with
-  | Result.Ok x -> Some x
-  | _ -> None
 
 (*$T match_ltim
   match_ltim "1,2\000" = Some (1, 2)

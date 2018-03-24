@@ -6,7 +6,8 @@ module Json = Xw_json
 let readers = [
   "across-lite-binary", (module Puz : READER);
   "across-lite-text", (module Ac_text : READER);
-  "json", (module Json : READER)
+  "json", (module Json : READER);
+  "text", (module Text : READER)
 ]
 
 let writers = [
@@ -14,7 +15,8 @@ let writers = [
   "across-lite-text", (module Ac_text : WRITER);
   "json", (module Json : WRITER);
   "reddit-filled", (module Reddit.Filled : WRITER);
-  "reddit-blank", (module Reddit.Blank : WRITER)
+  "reddit-blank", (module Reddit.Blank : WRITER);
+  "text", (module Text : WRITER)
 ]
 
 let keys xs = List.map fst xs |> List.sort compare

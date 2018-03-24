@@ -31,9 +31,7 @@ let format_clues xw =
   let format_clue (num, clue) =
     "  " ^ (string_of_int num) ^ "\\. " ^ clue ^ "  "
   in
-  let ac = "Across" :: "" :: CCList.map format_clue xw.clues.across in
-  let dn = "Down" :: "" :: CCList.map format_clue xw.clues.down in
-  CCString.unlines CCList.(ac @ [""] @ dn)
+  Text.format_clues ~format_clue xw
 
 module Filled = struct
   let write xw =
