@@ -1,3 +1,7 @@
+(**********************************************************************
+ * This is incomplete; features are mostly being added to the gtk and web
+ * frontends. Left here because why not.
+ **********************************************************************)
 open Tk
 open StdLabels
 open Xword.Types
@@ -210,7 +214,7 @@ class clue_widget ~parent ~clues =
 
 let _ =
   let input = { name = "lat140105.puz"; format = "acrosslite_binary" } in
-  let xw = File.read input in
+  let xw = Converter.read_file input in
   let clue_frame = Frame.create ~relief:`Groove ~borderwidth:2 top in
   let xw_frame = Frame.create ~relief:`Groove ~borderwidth:2 top in
   let xw_widget = new xw_canvas ~parent:xw_frame ~xword:xw in

@@ -55,7 +55,7 @@ Library crosspad-model
   FindlibParent: xword
   BuildDepends:
     xword
-  Path: src/xword
+  Path: src/model
   Install: true
   BuildTools: ocamlbuild
   Modules: Crosspad_model

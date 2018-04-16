@@ -2,7 +2,7 @@
 <**/*_bin.*>: pkg_bitstring.ppx
 
 # OASIS_START
-# DO NOT EDIT (digest: 7a5321d8f0ef6dd0a1d91bbe7cc4a71e)
+# DO NOT EDIT (digest: f4f842f3003f7fe43dc0bd4568d0f1d9)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -19,6 +19,11 @@ true: annot, bin_annot
 "_darcs": not_hygienic
 # Library xword
 "src/xword/xword.cmxs": use_xword
+<src/xword/*.ml{,i,y}>: pkg_angstrom
+<src/xword/*.ml{,i,y}>: pkg_containers
+<src/xword/*.ml{,i,y}>: pkg_ezjsonm
+<src/xword/*.ml{,i,y}>: pkg_str
+<src/xword/*.ml{,i,y}>: pkg_yojson
 # Library converter
 "src/converter/converter.cmxs": use_converter
 <src/converter/*.ml{,i,y}>: pkg_angstrom
@@ -30,13 +35,13 @@ true: annot, bin_annot
 <src/converter/*.ml{,i,y}>: pkg_yojson
 <src/converter/*.ml{,i,y}>: use_xword
 # Library crosspad-model
-"src/xword/crosspad-model.cmxs": use_crosspad-model
-<src/xword/*.ml{,i,y}>: pkg_angstrom
-<src/xword/*.ml{,i,y}>: pkg_containers
-<src/xword/*.ml{,i,y}>: pkg_ezjsonm
-<src/xword/*.ml{,i,y}>: pkg_str
-<src/xword/*.ml{,i,y}>: pkg_yojson
-<src/xword/*.ml{,i,y}>: use_xword
+"src/model/crosspad-model.cmxs": use_crosspad-model
+<src/model/*.ml{,i,y}>: pkg_angstrom
+<src/model/*.ml{,i,y}>: pkg_containers
+<src/model/*.ml{,i,y}>: pkg_ezjsonm
+<src/model/*.ml{,i,y}>: pkg_str
+<src/model/*.ml{,i,y}>: pkg_yojson
+<src/model/*.ml{,i,y}>: use_xword
 # Executable xwconvert
 "src/frontend/cli.native": pkg_angstrom
 "src/frontend/cli.native": pkg_bitstring

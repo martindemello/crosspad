@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: f4aa4b97a0b75d6d928f6da646532d2e) *)
+(* DO NOT EDIT (digest: c5efac73253f910246b9fb3b5825aae5) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -883,13 +883,14 @@ let package_default =
        [
           ("xword", ["src/xword"], []);
           ("converter", ["src/converter"], []);
-          ("crosspad-model", ["src/xword"], [])
+          ("crosspad-model", ["src/model"], [])
        ];
      lib_c = [];
      flags = [];
      includes =
        [
-          ("src/frontend", ["src/converter"; "src/xword"]);
+          ("src/model", ["src/xword"]);
+          ("src/frontend", ["src/converter"; "src/model"; "src/xword"]);
           ("src/converter", ["src/xword"])
        ]
   }
@@ -899,6 +900,6 @@ let conf = {MyOCamlbuildFindlib.no_automatic_syntax = false}
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default conf package_default;;
 
-# 903 "myocamlbuild.ml"
+# 904 "myocamlbuild.ml"
 (* OASIS_STOP *)
 Ocamlbuild_plugin.dispatch dispatch_default;;
