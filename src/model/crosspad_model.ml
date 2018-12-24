@@ -235,6 +235,17 @@ module Presenter = struct
     | `CurrentWord
     ]
 
+  (* Status *)
+
+  let display_symmetry = function
+    | SymmNone -> "None"
+    | Symm90 -> "90°"
+    | Symm180 -> "180°"
+
+  let display_locked = function
+    | true -> "Locked"
+    | false -> "Unlocked"
+
   (* Grid display *)
 
   let letter_of_cell = function
@@ -284,6 +295,7 @@ module Presenter = struct
     display_num (square x y model).num
 
   (* Clues *)
+
   let cluebox_header dir = match dir with
     | `Across -> "Across"
     | `Down -> "Down"

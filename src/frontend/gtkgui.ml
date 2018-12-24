@@ -336,6 +336,67 @@ class xword_widget ?packing ?show ~model () =
       meta#update
   end
 
+
+let make_combobox ~entries ~display ~f ~packing () =
+  let cols = new GTree.column_list in
+  let entry_col = cols#add Gobject.Data.caml in
+  let label_col = cols#add Gobject.Data.string in
+  let model = GTree.list_store cols in
+  List.iter ~f:(fun e ->
+      let row = model#append () in
+      model#set ~row ~column:entry_col e;
+      model#set ~row ~column:label_col (display e)
+    ) entries;
+  let combo = GEdit.combo_box ~model ~packing () in
+  let renderer = GTree.cell_renderer_text [ `XPAD 5 ] in
+  combo#pack renderer;
+  combo#add_attribute renderer "text" label_col;
+  combo#connect#changed
+    (fun () ->
+       match combo#active_iter with
+       | None -> ()
+       | Some row -> 
+         let data = combo#model#get ~row ~column:entry_col in
+         f data);
+  combo
+
+
+class toolbar_widget ~model ?packing ?show () =
+  let find_element e elts =
+    let rec find e elts i = match elts with
+      | [] -> 0
+      | x::xs -> if (x = e) then i else find e xs (i + 1)
+    in
+    find e elts 0
+  in
+  let hbox = GPack.hbox ?packing ?show () in
+  let packing = hbox#pack ~expand:false ~padding:3 in
+  let _ = GMisc.label ~text:"Symmetry:" ~packing () in
+  let symm_entries = [SymmNone; Symm90; Symm180] in
+  let symm = make_combobox ~packing
+      ~entries:symm_entries
+      ~display:Presenter.display_symmetry
+      ~f:(fun e -> model := {!model with symmetry = e}) ()
+  in
+  let _ = GMisc.separator `VERTICAL ~packing () in
+  let _ = GMisc.label ~text:"Grid Editing:" ~packing () in
+  let locked_entries = [true; false] in
+  let locked = make_combobox ~packing
+      ~entries:locked_entries 
+      ~display:Presenter.display_locked
+      ~f:(fun e -> model := {!model with grid_locked = e}) ()
+  in
+  object(self)
+    inherit GObj.widget_full hbox#as_widget
+
+    initializer
+      self#update
+
+    method update =
+      symm#set_active (find_element !model.symmetry symm_entries);
+      locked#set_active (find_element !model.grid_locked locked_entries)
+  end
+
 (* top level ui *)
 
 let add_file_menu xword menubar =
@@ -354,9 +415,11 @@ let make_ui model =
   window#connect#destroy ~callback:GMain.quit;
   let vbox = GPack.vbox ~packing:window#add () in
   let menubar = GMenu.menu_bar ~packing:(vbox#pack ~expand:false) () in
+  let _toolbar = new toolbar_widget
+    ~packing:(vbox#pack ~expand:false) ~model () in
   let xword = new xword_widget ~packing:vbox#add ~model () in
-  let _file_menu = add_file_menu xword menubar in
   let quit = GButton.button ~label:"Quit" ~packing:vbox#pack () in
+  let _file_menu = add_file_menu xword menubar in
   quit#connect#clicked ~callback:GMain.quit;
   window
 
