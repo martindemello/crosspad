@@ -1,0 +1,9 @@
+(library
+  (name converter)
+  (libraries 
+    angstrom
+    bitstring
+    bitstring.ppx
+    containers
+    xword)
+ (preprocess (pps bitstring.ppx)))

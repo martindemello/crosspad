@@ -1,13 +1,13 @@
 open StdLabels
 open Xword.Types
-open Cursor
-open Utils
+open Xword.Utils
 open Crosspad_model
 open Model
 
 [@@@ ocaml.warning "-10"]
 
-let utf8 s = Glib.Convert.convert s "UTF-8" "ISO-8859-1"
+let utf8 s = Glib.Convert.convert s ~from_codeset:"UTF-8"
+   ~to_codeset:"ISO-8859-1"
 
 let check_cache ~cond ~create ~destroy = function
     Some pm ->
@@ -46,16 +46,17 @@ class grid_widget ~model ?packing ?show () =
     val mutable pixmap = None
 
     initializer
-      da#event#connect#expose ~callback:(fun _ -> self#draw; true);
-      da#event#connect#key_press
+      ignore @@ da#event#connect#expose
+        ~callback:(fun _ -> self#draw; true);
+      ignore @@ da#event#connect#key_press
         ~callback:(fun ev -> self#handle_key_press ev);
 
-      da#event#add [`BUTTON_PRESS];
-      da#event#connect#button_press
+      ignore @@ da#event#add [`BUTTON_PRESS];
+      ignore @@ da#event#connect#button_press
         ~callback:(fun ev -> self#handle_button_press ev);
 
-      da#misc#set_can_focus true;
-      da#misc#grab_focus ();
+      ignore @@ da#misc#set_can_focus true;
+      ignore @@ da#misc#grab_focus ();
       ()
 
     method handle_button_press ev =
@@ -79,7 +80,7 @@ class grid_widget ~model ?packing ?show () =
     method handle_key_press ev =
       let open GdkKeysyms in
       let state = GdkEvent.Key.state ev in
-      let action = if List.mem `CONTROL state then
+      let action = if List.mem `CONTROL ~set:state then
          match GdkEvent.Key.keyval ev with
           | k when k = _Left -> Action.ToggleBar `Left
           | k when k = _KP_Left -> Action.ToggleBar `Left
@@ -120,7 +121,7 @@ class grid_widget ~model ?packing ?show () =
 
     method draw =
       let model = !model in
-      let {Gtk.x=x0; y=y0; width=width; height=height} =
+      let {Gtk.x=_; y=_; width=width; height=height} =
         da#misc#allocation in
       let _size = (min width height) * 49 / 50 in
       let dr = check_cache pixmap
@@ -211,7 +212,7 @@ let cluebox_title (dir : word_direction) = match dir with
 
 class clue_widget ~model ~dir ?packing ?show () =
   let scrolled_win =
-    GBin.scrolled_window ?packing ~width:200
+    GBin.scrolled_window ?packing ?show ~width:200
       ~hpolicy:`AUTOMATIC ~vpolicy:`AUTOMATIC ()
   in
   let cols = new GTree.column_list in
@@ -227,7 +228,7 @@ class clue_widget ~model ~dir ?packing ?show () =
 
     initializer
       self#update;
-      view#append_column clue_col_view;
+      ignore @@ view#append_column clue_col_view;
       ()
 
     method update =
@@ -236,7 +237,7 @@ class clue_widget ~model ~dir ?packing ?show () =
       List.iter ~f:(fun clue ->
           let row = list_model#append () in
           list_model#set ~row ~column clue)
-        (List.map Presenter.format_clue clues)
+        (List.map ~f:Presenter.format_clue clues)
   end
 
 
@@ -244,7 +245,7 @@ class clues_widget ~model ?packing ?show () =
   let vbox = GPack.vbox ?packing ?show () in
   let ac = new clue_widget ~model ~dir:`Across ~packing:vbox#add ?show () in
   let dn = new clue_widget ~model ~dir:`Down ~packing:vbox#add ?show () in
-  object(self)
+  object(_)
     inherit GObj.widget_full vbox#as_widget
 
     method update =
@@ -255,7 +256,7 @@ class clues_widget ~model ?packing ?show () =
 (* Metadata *)
 class metadata_widget ~model ?packing ?show () =
   let scrolled_win =
-    GBin.scrolled_window ?packing
+    GBin.scrolled_window ?packing ?show
       ~hpolicy:`AUTOMATIC ~vpolicy:`AUTOMATIC ()
   in
   let cols = new GTree.column_list in
@@ -265,16 +266,16 @@ class metadata_widget ~model ?packing ?show () =
   let make_view ~column = make_cell_view ~column ~title:""
       ~opts: [ `XALIGN 0.; `YPAD 1 ]
   in
-  let key_col_view = make_view key_col in
-  let val_col_view = make_view val_col in
+  let key_col_view = make_view ~column:key_col in
+  let val_col_view = make_view ~column:val_col in
   let view = GTree.view ~model:list_model ~packing:scrolled_win#add () in
   object(self)
     inherit GObj.widget_full scrolled_win#as_widget
 
     initializer
       self#update;
-      view#append_column key_col_view;
-      view#append_column val_col_view;
+      ignore @@ view#append_column key_col_view;
+      ignore @@ view#append_column val_col_view;
       ()
 
     method update =
@@ -290,8 +291,8 @@ class metadata_widget ~model ?packing ?show () =
 let file_dialog ~title ~callback ?filename () =
   let sel =
     GWindow.file_selection ~title ~modal:true ?filename () in
-  sel#cancel_button#connect#clicked ~callback:sel#destroy;
-  sel#ok_button#connect#clicked ~callback:
+  ignore @@ sel#cancel_button#connect#clicked ~callback:sel#destroy;
+  ignore @@ sel#ok_button#connect#clicked ~callback:
     begin fun () ->
       let name = sel#filename in
       sel#destroy ();
@@ -351,8 +352,8 @@ let make_combobox ~entries ~display ~f ~packing () =
   let renderer = GTree.cell_renderer_text [ `XPAD 5 ] in
   combo#pack renderer;
   combo#add_attribute renderer "text" label_col;
-  combo#connect#changed
-    (fun () ->
+  ignore @@ combo#connect#changed
+    ~callback:(fun () ->
        match combo#active_iter with
        | None -> ()
        | Some row -> 
@@ -405,14 +406,14 @@ let add_file_menu xword menubar =
   let accel_group = factory#accel_group in
   let file_menu = factory#add_submenu "File" in
   let factory = new GMenu.factory file_menu ~accel_group in
-  factory#add_item "Quit" ~key:_Q ~callback: GMain.quit;
-  factory#add_item "Open (Edit mode)" ~key:_O ~callback:xword#open_edit;
-  factory#add_item "Open (Solve mode)" ~key:_P ~callback:xword#open_solve
+  ignore @@ factory#add_item "Quit" ~key:_Q ~callback: GMain.quit;
+  ignore @@ factory#add_item "Open (Edit mode)" ~key:_O ~callback:xword#open_edit;
+  ignore @@ factory#add_item "Open (Solve mode)" ~key:_P ~callback:xword#open_solve
 
 let make_ui model =
   let _locale = GMain.init ~setlocale:true () in
   let window = GWindow.window () in
-  window#connect#destroy ~callback:GMain.quit;
+  ignore @@ window#connect#destroy ~callback:GMain.quit;
   let vbox = GPack.vbox ~packing:window#add () in
   let menubar = GMenu.menu_bar ~packing:(vbox#pack ~expand:false) () in
   let _toolbar = new toolbar_widget
@@ -420,7 +421,7 @@ let make_ui model =
   let xword = new xword_widget ~packing:vbox#add ~model () in
   let quit = GButton.button ~label:"Quit" ~packing:vbox#pack () in
   let _file_menu = add_file_menu xword menubar in
-  quit#connect#clicked ~callback:GMain.quit;
+  ignore @@ quit#connect#clicked ~callback:GMain.quit;
   window
 
 let () =

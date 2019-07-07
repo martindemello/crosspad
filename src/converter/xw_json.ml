@@ -1,6 +1,5 @@
-open Printf
 open Xword.Types
-open Utils
+open Xword.Utils
 
 open Ezjsonm
 

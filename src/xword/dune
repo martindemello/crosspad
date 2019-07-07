@@ -1,0 +1,9 @@
+(library
+  (name xword)
+  (libraries
+    angstrom
+    containers
+    ezjsonm
+    str
+    yojson))
+

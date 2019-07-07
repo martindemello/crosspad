@@ -1,6 +1,13 @@
-etc: [
-  "setup.ml"
-  "setup.data"
-  "setup.log"
-  "_oasis_remove_.ml"
+lib: [
+  "_build/install/default/lib/crosspad/META"
+  "_build/install/default/lib/crosspad/dune-package"
+  "_build/install/default/lib/crosspad/opam"
+]
+bin: [
+  "_build/install/default/bin/crosspad"
+  "_build/install/default/bin/xwconvert"
+]
+doc: [
+  "_build/install/default/doc/crosspad/LICENSE"
+  "_build/install/default/doc/crosspad/README.md"
 ]

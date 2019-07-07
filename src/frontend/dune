@@ -1,0 +1,20 @@
+(executable
+  (name cli)
+  (modules cli)
+  (libraries
+    containers
+    cmdliner
+    xword
+    converter))
+
+(executable
+  (name gtkgui)
+  (modules gtkgui)
+  (libraries
+    containers
+    lablgtk2
+    lablgtk2.auto-init
+    xword
+    converter
+    crosspad_model))
+  

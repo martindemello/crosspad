@@ -1,4 +1,3 @@
-open Puz_types
 open Angstrom
 open Text_match
 

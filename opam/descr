@@ -1,6 +1,6 @@
 Crossword grid manipulation library, file format converter and viewer
+
 This library defines an `xword` datatype, a library of useful
 functions, and conversions to and from various file formats. Also
 included are a command line file conversion tool and a gtk-based
 viewer.
-

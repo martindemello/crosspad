@@ -20,7 +20,6 @@ B /home/mdemello/.opam/4.07.1/lib/sexplib0
 B /home/mdemello/.opam/4.07.1/lib/uchar
 B /home/mdemello/.opam/4.07.1/lib/uutf
 B /home/mdemello/.opam/4.07.1/lib/yojson
-B ../../_build/default/src/model/.crosspad_model.objs/byte
 B ../../_build/default/src/xword/.xword.objs/byte
 S /home/mdemello/.opam/4.07.1/lib/angstrom
 S /home/mdemello/.opam/4.07.1/lib/base/caml
@@ -44,5 +43,4 @@ S /home/mdemello/.opam/4.07.1/lib/uchar
 S /home/mdemello/.opam/4.07.1/lib/uutf
 S /home/mdemello/.opam/4.07.1/lib/yojson
 S .
-S ../xword
-FLG -w @a-4-29-40-41-42-44-45-48-58-59-60-40 -strict-sequence -strict-formats -short-paths -keep-locs
+FLG -open Xword__ -w @a-4-29-40-41-42-44-45-48-58-59-60-40 -strict-sequence -strict-formats -short-paths -keep-locs

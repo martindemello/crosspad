@@ -1,8 +1,7 @@
-open Printf
 open Xword.Types
-open Utils
+open Xword.Utils
 
-open Yojson.Safe
+type json = Yojson.Safe.t
 
 (*
  * cell = { x : int, y : int, contents : string }

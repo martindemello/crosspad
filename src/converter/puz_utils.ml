@@ -1,6 +1,5 @@
-open Puz_types
 open Xword.Types
-open Utils
+open Xword.Utils
 
 (* CRC checksum for binary format *)
 class checksum ~seed =
@@ -26,7 +25,7 @@ class checksum ~seed =
   end
 
 let checksum_of_string s =
-  let c = new checksum 0 in
+  let c = new checksum ~seed:0 in
   c#add_string s;
   c#sum
 

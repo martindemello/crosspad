@@ -1,6 +1,5 @@
-open Printf
 open Xword.Types
-open Utils
+open Xword.Utils
 open Puz_types
 open Puz_utils
 
@@ -97,7 +96,7 @@ let read_puzzle data =
   let title = s#read_string in
   let author = s#read_string in
   let copyright = s#read_string in
-  let clues = Array.init puz.n_clues (fun i -> s#read_string) in
+  let clues = Array.init puz.n_clues (fun _ -> s#read_string) in
   let notes = s#read_string in
   let extensions = Puz_bin.read_extensions s in
   { puz with solution; fill; title; author; copyright; notes;
@@ -133,7 +132,7 @@ let unpack_solution xw puzzle =
   done
 
 let unpack_rebus xw grbs rtbl =
-  Xword.iteri xw (fun i x y c ->
+  Xword.iteri xw (fun i x y _ ->
       let n = Char.code grbs.[i] in
       if n > 0 then begin
         let n = n - 1 in
@@ -182,8 +181,8 @@ let pack_clues xw =
   let nums = List.sort cmp nums in
   let rec weave ns a d out = match ns with
     | [] -> List.rev out
-    | (x, `Ac) :: xs -> weave xs (tl a) d ((hd a) :: out)
-    | (x, `Dn) :: xs -> weave xs a (tl d) ((hd d) :: out)
+    | (_, `Ac) :: xs -> weave xs (tl a) d ((hd a) :: out)
+    | (_, `Dn) :: xs -> weave xs a (tl d) ((hd d) :: out)
   in
   let cs = weave nums xw.clues.across xw.clues.down [] in
   List.map snd cs

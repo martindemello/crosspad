@@ -1,5 +1,5 @@
 open Xword.Types
-open Utils
+open Xword.Utils
 
 module Json = Xw_json
 

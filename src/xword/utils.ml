@@ -81,7 +81,7 @@ let list_group ~break xs =
     | y :: ys ->
       match acc with
       | [] -> lg ys [[y]]
-      | h :: t -> begin
+      | h :: _ -> begin
         if break y (List.hd h) then
           lg ys ([y] :: acc)
         else

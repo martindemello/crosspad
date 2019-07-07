@@ -1,5 +1,4 @@
 open Angstrom
-open Typedefs
 
 let run_match p s =
   match parse_string p s with

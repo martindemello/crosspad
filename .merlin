@@ -1,13 +1,46 @@
-S src
-S src/xword
-S src/converter
-S src/frontend
-
-B _build/src
-B _build/src/xword
-B _build/src/converter
-B _build/src/frontend
-
-FLG -w -10
-
-PKG yojson containers bitstring angstrom opium lablgtk2 cmdliner
+EXCLUDE_QUERY_DIR
+B /home/mdemello/.opam/4.07.1/lib/angstrom
+B /home/mdemello/.opam/4.07.1/lib/base/caml
+B /home/mdemello/.opam/4.07.1/lib/bigarray-compat
+B /home/mdemello/.opam/4.07.1/lib/bigstringaf
+B /home/mdemello/.opam/4.07.1/lib/biniou
+B /home/mdemello/.opam/4.07.1/lib/bytes
+B /home/mdemello/.opam/4.07.1/lib/containers
+B /home/mdemello/.opam/4.07.1/lib/containers/monomorphic
+B /home/mdemello/.opam/4.07.1/lib/cstruct
+B /home/mdemello/.opam/4.07.1/lib/easy-format
+B /home/mdemello/.opam/4.07.1/lib/ezjsonm
+B /home/mdemello/.opam/4.07.1/lib/hex
+B /home/mdemello/.opam/4.07.1/lib/jsonm
+B /home/mdemello/.opam/4.07.1/lib/ocaml
+B /home/mdemello/.opam/4.07.1/lib/parsexp
+B /home/mdemello/.opam/4.07.1/lib/result
+B /home/mdemello/.opam/4.07.1/lib/sexplib
+B /home/mdemello/.opam/4.07.1/lib/sexplib0
+B /home/mdemello/.opam/4.07.1/lib/uchar
+B /home/mdemello/.opam/4.07.1/lib/uutf
+B /home/mdemello/.opam/4.07.1/lib/yojson
+B _build/default/.xword.objs/byte
+S /home/mdemello/.opam/4.07.1/lib/angstrom
+S /home/mdemello/.opam/4.07.1/lib/base/caml
+S /home/mdemello/.opam/4.07.1/lib/bigarray-compat
+S /home/mdemello/.opam/4.07.1/lib/bigstringaf
+S /home/mdemello/.opam/4.07.1/lib/biniou
+S /home/mdemello/.opam/4.07.1/lib/bytes
+S /home/mdemello/.opam/4.07.1/lib/containers
+S /home/mdemello/.opam/4.07.1/lib/containers/monomorphic
+S /home/mdemello/.opam/4.07.1/lib/cstruct
+S /home/mdemello/.opam/4.07.1/lib/easy-format
+S /home/mdemello/.opam/4.07.1/lib/ezjsonm
+S /home/mdemello/.opam/4.07.1/lib/hex
+S /home/mdemello/.opam/4.07.1/lib/jsonm
+S /home/mdemello/.opam/4.07.1/lib/ocaml
+S /home/mdemello/.opam/4.07.1/lib/parsexp
+S /home/mdemello/.opam/4.07.1/lib/result
+S /home/mdemello/.opam/4.07.1/lib/sexplib
+S /home/mdemello/.opam/4.07.1/lib/sexplib0
+S /home/mdemello/.opam/4.07.1/lib/uchar
+S /home/mdemello/.opam/4.07.1/lib/uutf
+S /home/mdemello/.opam/4.07.1/lib/yojson
+S .
+FLG -open Xword -w @a-4-29-40-41-42-44-45-48-58-59-60-40 -strict-sequence -strict-formats -short-paths -keep-locs

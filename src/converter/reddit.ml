@@ -1,7 +1,7 @@
 (* Markup used by crosswords.reddit.com *)
 
-open Typedefs
-open Utils
+open Xword.Types
+open Xword.Utils
 
 let format_grid xw ~filled =
   let format_square sq =
@@ -23,7 +23,7 @@ let format_grid xw ~filled =
   let format_row row = CCList.map format_square row |> format_line in
   let grid = lists_of_grid xw in
   let rows = CCList.map format_row grid in
-  let sep = format_line (CCList.init xw.cols (fun x -> "--")) in
+  let sep = format_line (CCList.init xw.cols (fun _ -> "--")) in
   let out = CCList.((hd rows) :: sep :: (tl rows)) in
   CCString.unlines out
 

@@ -1,0 +1,4 @@
+(install
+  (section bin)
+  (files (src/frontend/cli.exe as xwconvert)
+	 (src/frontend/gtkgui.exe as crosspad)))

@@ -5,6 +5,10 @@ module Types = struct
   include Typedefs
 end
 
+module Cursor = Cursor
+
+module Utils = Utils
+
 let empty_square = {
   cell = Empty;
   num = 0;
@@ -189,7 +193,7 @@ let encode_rebus xw =
   let m = ref SMap.empty in
   let l = ref [] in
   let k = ref 0 in
-  iteri xw (fun i x y c ->
+  iteri xw (fun _ x y c ->
       match c with
       | Rebus r -> begin
           match smap_find r.solution !m with

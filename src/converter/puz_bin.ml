@@ -25,6 +25,7 @@ let read_header data start =
       scrambled_tag : 16 : littleendian
   |} ->
     { new_puzzle with preamble; width; height; version; n_clues }
+  [@@ocaml.warning "-27"]
 
 
 (* read in extensions *)
@@ -77,7 +78,7 @@ let header_checksum p =
   checksum_of_string s
 
 let text_checksum p seed =
-  let c = new checksum seed in
+  let c = new checksum ~seed in
   c#add_string_0 p.title;
   c#add_string_0 p.author;
   c#add_string_0 p.copyright;
@@ -87,7 +88,7 @@ let text_checksum p seed =
 
 let global_checksum p =
   let hc = header_checksum p in
-  let c = new checksum hc in
+  let c = new checksum ~seed:hc in
   c#add_string p.solution;
   c#add_string p.fill;
   c#sum

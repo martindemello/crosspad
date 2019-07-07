@@ -1,5 +1,7 @@
 open Xword.Types
 
+module Cursor = Xword.Cursor
+
 (* Editable clue with a field for notes *)
 type working_clue = {
   number : int;

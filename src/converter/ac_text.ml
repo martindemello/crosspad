@@ -1,6 +1,5 @@
-open Printf
 open Xword.Types
-open Utils
+open Xword.Utils
 open Puz_match
 
 type puzzle = {
@@ -25,6 +24,7 @@ let new_puzzle = {
   rebus = "";
 }
 
+[@@@ocaml.warning "-34"] (* unused type sections *)
 type sections = [
 | `Title
 | `Author
@@ -74,7 +74,7 @@ let write xw =
     "DOWN", write_clues xw.clues.down;
     "NOTEPAD", meta `Notes
   ] in
-  let sections = List.filter (fun (k, v) ->
+  let sections = List.filter (fun (_, v) ->
       not (is_empty_string v)) sections in
   let ss = List.map (fun (k, v) ->
       Printf.sprintf "<%s>\n%s" k v) sections in
@@ -167,8 +167,8 @@ let unpack_clues xw puzzle =
   let i_ac = ref 0 in
   let i_dn = ref 0 in
   ignore @@ Xword.renumber
-    ~on_ac:(fun n -> ac := (!i_ac + 1, ac_clues.(!i_ac)) :: !ac; i_ac := !i_ac + 1)
-    ~on_dn:(fun n -> dn := (!i_dn + 1, dn_clues.(!i_dn)) :: !dn; i_dn := !i_dn + 1)
+    ~on_ac:(fun _ -> ac := (!i_ac + 1, ac_clues.(!i_ac)) :: !ac; i_ac := !i_ac + 1)
+    ~on_dn:(fun _ -> dn := (!i_dn + 1, dn_clues.(!i_dn)) :: !dn; i_dn := !i_dn + 1)
     xw;
   xw.clues.across <- List.rev !ac;
   xw.clues.down <- List.rev !dn
@@ -189,7 +189,7 @@ let read data =
     | x :: xs -> (x, xs)
   in
   let _version = read_version v in
-  let sections = list_group lines ~break:(fun x y ->
+  let sections = list_group lines ~break:(fun x _ ->
      is_some (match_text_section x))
   in
   let sections = List.map read_section sections in
