@@ -29,21 +29,17 @@ let bg_of_cell model x y =
   | `CursorSymmWhite -> `WHITE
 
 class grid_widget ~model ?packing ?show () =
-  let scale = 30 in
+  let sq_size = 30 in
   let id (x : Model.t) = x in
-  let width = !model.xw.cols * scale + 1 in
-  let height = !model.xw.rows * scale + 1 in
+  let width = !model.xw.cols * sq_size + 1 in
+  let height = !model.xw.rows * sq_size + 1 in
   let da = GMisc.drawing_area ~width ~height ?packing ?show () in
   let context = da#misc#create_pango_context in
-  let point_to_cell x y =
-    let f u = int_of_float u / scale in
-    (f x, f y)
-  in
   object (self)
     inherit GObj.widget_full da#as_widget
     val model = model
-    val mutable size = 0, 0
     val mutable pixmap = None
+    val mutable scale = sq_size
 
     initializer
       ignore @@ da#event#connect#expose
@@ -60,6 +56,10 @@ class grid_widget ~model ?packing ?show () =
       ()
 
     method handle_button_press ev =
+      let point_to_cell x y =
+        let f u = int_of_float u / scale in
+        (f x, f y)
+      in
       let handled = ref true in
       let _ = match GdkEvent.Button.button ev with
       | 1 -> (
@@ -130,6 +130,11 @@ class grid_widget ~model ?packing ?show () =
           ~create: (fun () -> GDraw.pixmap ~width ~height ~window:da ())
       in
       pixmap <- Some dr;
+
+      let div x y = int_of_float ((float_of_int x) /. (float_of_int y)) in
+      let sx = div width model.xw.rows in
+      let sy = div height model.xw.cols in
+      scale <- min sx sy;
 
       let write_text ~row ~col ~font ~pos ~text =
         context#set_font_by_name font;
@@ -303,9 +308,9 @@ let file_dialog ~title ~callback ?filename () =
 
 class xword_widget ?packing ?show ~model () =
   let hbox = GPack.hbox ?packing ?show () in
-  let vb1 = GPack.vbox ~packing:(hbox#pack ~expand:false) () in
-  let fr = GBin.frame ~border_width:3 ~shadow_type:`IN
-      ~packing:(vb1#pack ~expand:false) () in
+  let vb1 = GPack.vbox ~packing:hbox#add () in
+  let fr = GBin.frame ~packing:vb1#add
+      ~border_width:3 ~shadow_type:`IN () in
   let grid = new grid_widget ~packing:fr#add ~model () in
   let clues = new clues_widget ~packing:hbox#add ~model () in
   let meta = new metadata_widget ~packing:vb1#add ~model () in
