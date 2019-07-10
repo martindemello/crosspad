@@ -7,6 +7,7 @@ B /home/mdemello/.opam/4.07.1/lib/biniou
 B /home/mdemello/.opam/4.07.1/lib/bitstring
 B /home/mdemello/.opam/4.07.1/lib/bitstring/ppx
 B /home/mdemello/.opam/4.07.1/lib/bytes
+B /home/mdemello/.opam/4.07.1/lib/cairo2
 B /home/mdemello/.opam/4.07.1/lib/cmdliner
 B /home/mdemello/.opam/4.07.1/lib/containers
 B /home/mdemello/.opam/4.07.1/lib/containers/monomorphic
@@ -15,7 +16,7 @@ B /home/mdemello/.opam/4.07.1/lib/easy-format
 B /home/mdemello/.opam/4.07.1/lib/ezjsonm
 B /home/mdemello/.opam/4.07.1/lib/hex
 B /home/mdemello/.opam/4.07.1/lib/jsonm
-B /home/mdemello/.opam/4.07.1/lib/lablgtk2
+B /home/mdemello/.opam/4.07.1/lib/lablgtk3
 B /home/mdemello/.opam/4.07.1/lib/ocaml
 B /home/mdemello/.opam/4.07.1/lib/ocaml-migrate-parsetree
 B /home/mdemello/.opam/4.07.1/lib/ocaml/compiler-libs
@@ -42,6 +43,7 @@ S /home/mdemello/.opam/4.07.1/lib/biniou
 S /home/mdemello/.opam/4.07.1/lib/bitstring
 S /home/mdemello/.opam/4.07.1/lib/bitstring/ppx
 S /home/mdemello/.opam/4.07.1/lib/bytes
+S /home/mdemello/.opam/4.07.1/lib/cairo2
 S /home/mdemello/.opam/4.07.1/lib/cmdliner
 S /home/mdemello/.opam/4.07.1/lib/containers
 S /home/mdemello/.opam/4.07.1/lib/containers/monomorphic
@@ -50,7 +52,7 @@ S /home/mdemello/.opam/4.07.1/lib/easy-format
 S /home/mdemello/.opam/4.07.1/lib/ezjsonm
 S /home/mdemello/.opam/4.07.1/lib/hex
 S /home/mdemello/.opam/4.07.1/lib/jsonm
-S /home/mdemello/.opam/4.07.1/lib/lablgtk2
+S /home/mdemello/.opam/4.07.1/lib/lablgtk3
 S /home/mdemello/.opam/4.07.1/lib/ocaml
 S /home/mdemello/.opam/4.07.1/lib/ocaml-migrate-parsetree
 S /home/mdemello/.opam/4.07.1/lib/ocaml/compiler-libs

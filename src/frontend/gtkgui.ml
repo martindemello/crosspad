@@ -4,46 +4,45 @@ open Xword.Utils
 open Crosspad_model
 open Model
 
-[@@@ ocaml.warning "-10"]
 
 let utf8 s = Glib.Convert.convert s ~from_codeset:"UTF-8"
    ~to_codeset:"ISO-8859-1"
 
-let check_cache ~cond ~create ~destroy = function
-    Some pm ->
-      if cond pm then pm else begin
-        destroy pm;
-        create ()
-      end
-  | None -> create ()
+
+module Colors = struct
+  let black = (0.0, 0.0, 0.0)
+  let white = (1.0, 1.0, 1.0)
+  let light_green = (0.5, 1.0, 0.5)
+  let dark_green = (0.0, 0.3, 0.0)
+  let light_blue = (0.7, 0.7, 1.0)
+end
+
 
 let bg_of_cell model x y =
   let open Presenter in
+  let open Colors in
   match cell_background x y model with
-  | `Black -> `BLACK
-  | `White -> `WHITE
-  | `CursorBlack -> `NAME "dark green"
-  | `CursorWhite -> `NAME "light green"
-  | `CurrentWord -> `NAME "light blue"
-  | `CursorSymmBlack -> `BLACK
-  | `CursorSymmWhite -> `WHITE
+  | `Black -> black
+  | `White -> white
+  | `CursorBlack -> dark_green
+  | `CursorWhite -> light_green
+  | `CurrentWord -> light_blue
+  | `CursorSymmBlack -> black
+  | `CursorSymmWhite -> white
+
 
 class grid_widget ~model ?packing ?show () =
   let sq_size = 30 in
   let id (x : Model.t) = x in
-  let width = !model.xw.cols * sq_size + 1 in
-  let height = !model.xw.rows * sq_size + 1 in
-  let da = GMisc.drawing_area ~width ~height ?packing ?show () in
-  let context = da#misc#create_pango_context in
+  let da = GMisc.drawing_area ?packing ?show () in
   object (self)
     inherit GObj.widget_full da#as_widget
     val model = model
-    val mutable pixmap = None
     val mutable scale = sq_size
 
     initializer
-      ignore @@ da#event#connect#expose
-        ~callback:(fun _ -> self#draw; true);
+      ignore @@ da#misc#connect#draw
+        ~callback:(fun cr -> self#draw cr; true);
       ignore @@ da#event#connect#key_press
         ~callback:(fun ev -> self#handle_key_press ev);
 
@@ -72,7 +71,7 @@ class grid_widget ~model ?packing ?show () =
       | _ -> handled := false
       in
       if !handled then begin
-        self#draw;
+        da#misc#queue_draw ();
         da#misc#grab_focus ()
       end;
       !handled
@@ -115,21 +114,13 @@ class grid_widget ~model ?packing ?show () =
       if action == Action.Nothing then
         false
       else begin
-        self#draw;
+        da#misc#queue_draw ();
         true
       end
 
-    method draw =
+    method draw cr =
       let model = !model in
-      let {Gtk.x=_; y=_; width=width; height=height} =
-        da#misc#allocation in
-      let _size = (min width height) * 49 / 50 in
-      let dr = check_cache pixmap
-          ~cond:(fun pm -> pm#size = (width, height))
-          ~destroy:(fun pm -> Gdk.Pixmap.destroy pm#pixmap)
-          ~create: (fun () -> GDraw.pixmap ~width ~height ~window:da ())
-      in
-      pixmap <- Some dr;
+      let {Gtk.width=width; height=height; _} = da#misc#allocation in
 
       let div x y = int_of_float ((float_of_int x) /. (float_of_int y)) in
       let sx = div width model.xw.rows in
@@ -137,16 +128,25 @@ class grid_widget ~model ?packing ?show () =
       scale <- min sx sy;
 
       let write_text ~row ~col ~font ~pos ~text =
-        context#set_font_by_name font;
-        let layout = context#create_layout in
-        Pango.Layout.set_text layout text;
-        let (w,h) = Pango.Layout.get_pixel_size layout in
+        let layout = new GPango.layout (Cairo_pango.create_layout cr) in
+        let desc = GPango.font_description_from_string font in
+        layout#set_font_description desc;
+        layout#set_text text;
         let top, left = row * scale, col * scale in
+        let (w, h) = layout#get_size in
+        let x0, y0 = float left, float top in
+        let w = (float w /. float Pango.scale) /. 2. in
+        let h = (float h /. float Pango.scale) in
+        let s = float scale in
         let x, y = match pos with
-          | `Letter -> (left + scale / 2 - w / 2, top + scale - h)
-          | `Number -> (left + 2, top + 2)
+          | `Letter -> (x0 +. s /. 2. -. w /. 2., y0 +. s -. h)
+          | `Number -> (x0 +. 2., y0 +. 2.)
         in
-        dr#put_layout ~x ~y ~fore:`BLACK layout;
+        Cairo.save cr;
+        Cairo.set_source_rgb cr 0. 0. 0.;
+        Cairo.move_to cr x y;
+        Cairo_pango.show_layout cr layout#as_layout;
+        Cairo.restore cr
       in
 
       let write_letter ~row ~col =
@@ -163,27 +163,41 @@ class grid_widget ~model ?packing ?show () =
         | c -> write_text ~row ~col ~text:c ~pos:`Number ~font:"sans 6"
       in
 
-      dr#set_foreground `WHITE;
-      dr#rectangle ~x:0 ~y:0 ~width ~height ~filled:true ();
+      let set_color color =
+        let r, g, b = color in
+        Cairo.set_source_rgb cr r g b
+      in
+
+      let rectangle ~x ~y ~w ~h ~color ~fill =
+        let x, y, w, h = float x, float y, float w, float h in
+        Cairo.save cr;
+        set_color color;
+        Cairo.rectangle cr x y ~w ~h;
+        if fill then Cairo.fill cr else Cairo.stroke cr;
+        Cairo.restore cr
+      in
+
+      set_color Colors.white;
+      Cairo.paint cr;
       for y = 0 to model.xw.rows - 1 do
         for x = 0 to model.xw.cols - 1 do
           let top, left = y * scale, x * scale in
-          let rect = dr#rectangle ~x:left ~y:top ~width:scale ~height:scale in
+
           (* cell *)
-          dr#set_foreground (bg_of_cell model x y);
-          rect ~filled:true ();
-          dr#set_foreground `BLACK;
-          rect ~filled:false ();
+          let color = bg_of_cell model x y in
+          rectangle ~x:left ~y:top ~w:scale ~h:scale ~color ~fill:true;
+          Cairo.set_line_width cr 0.5;
+          rectangle ~x:left ~y:top ~w:scale ~h:scale ~color:Colors.black ~fill:false;
 
           (* bars *)
           let sq = Xword.get model.xw x y in
           if sq.bar_right then begin
             let bx = left + scale - 2 in
-            dr#rectangle ~x:bx ~y:top ~width:2 ~height:scale ~filled:true ()
+            rectangle ~x:bx ~y:top ~w:2 ~h:scale ~color:Colors.black ~fill:true;
           end;
           if sq.bar_down then begin
             let by = top + scale - 2 in
-            dr#rectangle ~x:left ~y:by ~width:scale ~height:2 ~filled:true ()
+            rectangle ~x:left ~y:by ~w:scale ~h:2 ~color:Colors.black ~fill:true;
           end;
 
           (* contents *)
@@ -192,10 +206,8 @@ class grid_widget ~model ?packing ?show () =
         done
       done;
 
-      (new GDraw.drawable da#misc#window)#put_pixmap ~x:0 ~y:0 dr#pixmap
-
     method update =
-      self#draw
+      da#misc#queue_draw ()
   end
 
 
@@ -258,6 +270,7 @@ class clues_widget ~model ?packing ?show () =
       dn#update
   end
 
+
 (* Metadata *)
 class metadata_widget ~model ?packing ?show () =
   let scrolled_win =
@@ -293,20 +306,24 @@ class metadata_widget ~model ?packing ?show () =
         !model.xw.metadata
   end
 
-let file_dialog ~title ~callback ?filename () =
-  let sel =
-    GWindow.file_selection ~title ~modal:true ?filename () in
-  ignore @@ sel#cancel_button#connect#clicked ~callback:sel#destroy;
-  ignore @@ sel#ok_button#connect#clicked ~callback:
-    begin fun () ->
-      let name = sel#filename in
-      sel#destroy ();
-      callback name
-    end;
-  sel#show ()
+
+let file_dialog ~title ~callback ~parent () =
+  let dialog = GWindow.file_chooser_dialog
+      ~action:`OPEN ~title ~parent () in
+  dialog#add_button_stock `CANCEL `CANCEL ;
+  dialog#add_select_button_stock `OPEN `OPEN ;
+  begin match dialog#run () with
+  | `OPEN -> begin
+      match dialog#filename with
+      | Some name -> callback name
+      | _ -> ()
+    end
+  | `DELETE_EVENT | `CANCEL -> ()
+  end ;
+  dialog#destroy ()
 
 
-class xword_widget ?packing ?show ~model () =
+class xword_widget ?packing ?show ~model ~window () =
   let hbox = GPack.hbox ?packing ?show () in
   let vb1 = GPack.vbox ~packing:hbox#add () in
   let fr = GBin.frame ~packing:vb1#add
@@ -331,10 +348,10 @@ class xword_widget ?packing ?show ~model () =
       self#update
 
     method open_edit () =
-      file_dialog ~title:"Open" ~callback:(self#load_file `Edit) ()
+      file_dialog ~parent:window ~title:"Open" ~callback:(self#load_file `Edit) ()
 
     method open_solve () =
-      file_dialog ~title:"Open" ~callback:(self#load_file `Solve) ()
+      file_dialog ~parent:window ~title:"Open" ~callback:(self#load_file `Solve) ()
 
     method update =
       grid#update;
@@ -423,7 +440,7 @@ let make_ui model =
   let menubar = GMenu.menu_bar ~packing:(vbox#pack ~expand:false) () in
   let _toolbar = new toolbar_widget
     ~packing:(vbox#pack ~expand:false) ~model () in
-  let xword = new xword_widget ~packing:vbox#add ~model () in
+  let xword = new xword_widget ~packing:vbox#add ~model ~window () in
   let quit = GButton.button ~label:"Quit" ~packing:vbox#pack () in
   let _file_menu = add_file_menu xword menubar in
   ignore @@ quit#connect#clicked ~callback:GMain.quit;

@@ -12,9 +12,7 @@
   (modules gtkgui)
   (libraries
     containers
-    lablgtk2
-    lablgtk2.auto-init
+    lablgtk3
     xword
     converter
     crosspad_model))
-  
