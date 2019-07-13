@@ -324,17 +324,19 @@ let file_dialog ~title ~callback ~parent () =
 
 
 class xword_widget ?packing ?show ~model ~window () =
-  let hbox = GPack.hbox ?packing ?show () in
-  let vb1 = GPack.vbox ~packing:hbox#add () in
-  let fr = GBin.frame ~packing:vb1#add
+  let hpane = GPack.paned `HORIZONTAL ?packing ?show () in
+  let vpane = GPack.paned `VERTICAL ~packing:hpane#pack1 () in
+  let fr = GBin.frame ~packing:vpane#pack1
       ~border_width:3 ~shadow_type:`IN () in
   let grid = new grid_widget ~packing:fr#add ~model () in
-  let clues = new clues_widget ~packing:hbox#add ~model () in
-  let meta = new metadata_widget ~packing:vb1#add ~model () in
+  let clues = new clues_widget ~packing:hpane#pack2 ~model () in
+  let meta = new metadata_widget ~packing:vpane#pack2 ~model () in
   object(self)
-    inherit GObj.widget_full hbox#as_widget
+    inherit GObj.widget_full hpane#as_widget
 
     initializer
+      vpane#set_position 1000;
+      hpane#set_position 1000;
       self#update
 
     method load_file mode fname =
