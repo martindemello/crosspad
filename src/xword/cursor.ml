@@ -27,3 +27,9 @@ let move cursor ?wrap:(wrap=true) dir =
   let x, y = cursor.x + x, cursor.y + y in
   let f = if wrap then cyc else pin in
     { cursor with x = f x cursor.xmax; y = f y cursor.ymax }
+
+let set cursor x y =
+  if x >= 0 && x < cursor.xmax && y >= 0 && y < cursor.ymax then
+    { cursor with x; y }
+  else
+    cursor

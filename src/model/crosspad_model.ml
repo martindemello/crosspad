@@ -74,7 +74,7 @@ module Model = struct
     if x = model.cursor.x && y = model.cursor.y then
       model |> toggle_current_dir
     else
-      let cursor' = { model.cursor with x; y } in
+      let cursor' = Cursor.set model.cursor x y in
       { model with cursor = cursor' }
       |> update_current_word
 
