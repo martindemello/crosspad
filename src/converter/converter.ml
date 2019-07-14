@@ -14,6 +14,8 @@ let readers = [
 let writers = [
   "across-lite-binary", (module Puz : WRITER);
   "across-lite-text", (module Ac_text : WRITER);
+  "exolve-filled", (module Exolve.Filled : WRITER);
+  "exolve-blank", (module Exolve.Blank : WRITER);
   "json", (module Json : WRITER);
   "reddit-filled", (module Reddit.Filled : WRITER);
   "reddit-blank", (module Reddit.Blank : WRITER);
