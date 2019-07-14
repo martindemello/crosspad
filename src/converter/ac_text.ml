@@ -46,7 +46,7 @@ let write_solution xw =
   Xword.format_grid xw ~fmt ~charsep:"" ~rowsep:"\n"
 
 let write_clues cs =
-  unlines (List.map snd cs)
+  CCString.unlines (List.map snd cs)
 
 let write_rebus xw =
   let rtbl, rmap = Xword.encode_rebus xw in
@@ -57,7 +57,7 @@ let write_rebus xw =
     | None -> raise (PuzzleFormatError "Something went wrong in rebus encoding")
   in
   let rs = List.map f rtbl in
-  unlines rs
+  CCString.unlines rs
 
 let write xw =
   let meta = Xword.metadata xw in
@@ -78,7 +78,7 @@ let write xw =
       not (is_empty_string v)) sections in
   let ss = List.map (fun (k, v) ->
       Printf.sprintf "<%s>\n%s" k v) sections in
-  header ^ (unlines ss) ^ "\n"
+  header ^ (CCString.unlines ss) ^ "\n"
 
 let read_version = function
   | s when s = "<ACROSS PUZZLE>" -> 1
@@ -184,7 +184,7 @@ let xword_of_puzzle puzzle =
   xw
 
 let read data =
-  let v, lines = match (split_lines data) with
+  let v, lines = match (CCString.lines data) with
     | [] -> raise (PuzzleFormatError "Could not read input")
     | x :: xs -> (x, xs)
   in

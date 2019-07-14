@@ -54,12 +54,6 @@ let list_assoc key xs =
 let assoc_in_list xs key =
   list_assoc key xs
 
-let split_lines x =
-  CCString.lines x
-
-let unlines xs =
-  String.concat "\n" xs
-
 let is_empty_string s =
   s = ""
 

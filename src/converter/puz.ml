@@ -115,8 +115,8 @@ let unpack_clues xw puzzle =
   let dn = ref [] in
   let i = ref 0 in
   ignore @@ Xword.renumber
-    ~on_ac:(fun n -> ac := (n, clues.(!i)) :: !ac; i := !i + 1)
-    ~on_dn:(fun n -> dn := (n, clues.(!i)) :: !dn; i := !i + 1)
+    ~on_ac:(fun (_, _, n) -> ac := (n, clues.(!i)) :: !ac; i := !i + 1)
+    ~on_dn:(fun (_, _, n) -> dn := (n, clues.(!i)) :: !dn; i := !i + 1)
     xw;
   xw.clues.across <- List.rev !ac;
   xw.clues.down <- List.rev !dn

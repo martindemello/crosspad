@@ -137,8 +137,8 @@ let renumber ?(on_ac=ignore) ?(on_dn=ignore) xw =
   for y = 0 to xw.rows - 1 do
     for x = 0 to xw.cols - 1 do
       let a, d = start_across xw x y, start_down xw x y in
-      if a then on_ac !n;
-      if d then on_dn !n;
+      if a then on_ac (x, y, !n);
+      if d then on_dn (x, y, !n);
       if (a || d) then begin
         set_num xw x y !n;
         n := !n + 1;
@@ -159,7 +159,7 @@ let rec collect_word xw x y dir out =
   else
     collect_word xw (x + dx) (y + dy) dir ((x, y) :: out)
 
-let word_ac xw x y =
+let word_coords_ac xw x y =
   if is_black xw x y then
     []
   else begin
@@ -167,10 +167,10 @@ let word_ac xw x y =
     if right_boundary xw x y then
       out
     else
-      collect_word xw (x + 1) y `Right out
+      List.rev @@ collect_word xw (x + 1) y `Right out
   end
 
-let word_dn xw x y =
+let word_coords_dn xw x y =
   if is_black xw x y then
     []
   else begin
@@ -178,8 +178,32 @@ let word_dn xw x y =
     if bottom_boundary xw x y then
       out
     else
-      collect_word xw x (y + 1) `Down out
+      List.rev @@ collect_word xw x (y + 1) `Down out
   end
+
+let string_of_cell = function
+  | Letter s -> s
+  | Rebus r -> r.display_char
+  | Black -> "#"
+  | Empty -> "."
+
+let string_of_cells cells =
+  let letters = List.map string_of_cell cells in
+  CCString.concat "" letters
+
+let cells_of_coords xw coords =
+  List.map (fun (x, y) -> get_cell xw x y) coords
+
+let word_ac xw x y =
+  word_coords_ac xw x y
+  |> cells_of_coords xw
+  |> string_of_cells
+
+let word_dn xw x y =
+  word_coords_dn xw x y
+  |> cells_of_coords xw
+  |> string_of_cells
+
 
 (* Update the 'symbol' field in every rebus square, so that cells
  * with the same solution have the same symbol. Symbols are
@@ -236,13 +260,7 @@ let format_grid xw ~fmt ~rowsep ~charsep =
   !s
 
 let inspect_grid xw =
-  let fmt = function
-    | Black -> "#"
-    | Empty -> "."
-    | Letter c -> c
-    | Rebus r -> r.display_char
-  in
-  let s = format_grid xw ~rowsep:"\n" ~charsep:" " ~fmt in
+  let s = format_grid xw ~rowsep:"\n" ~charsep:" " ~fmt:string_of_cell in
   print_endline s
 
 let inspect_clues xw =

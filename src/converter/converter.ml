@@ -7,6 +7,7 @@ let readers = [
   "across-lite-binary", (module Puz : READER);
   "across-lite-text", (module Ac_text : READER);
   "json", (module Json : READER);
+  "qxw", (module Qxw : READER);
   "text", (module Text : READER)
 ]
 

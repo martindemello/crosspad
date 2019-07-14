@@ -1,7 +1,6 @@
 (* Simple text format *)
 
 open Xword.Types
-open Xword.Utils
 
 let format_grid xw =
   let fmt = function
@@ -25,5 +24,5 @@ let write xw =
 
 let read data =
   let xw = Xword.make 15 15 in
-  let _ = split_lines data in
+  let _ = CCString.lines data in
   xw

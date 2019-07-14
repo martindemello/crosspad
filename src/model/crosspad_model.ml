@@ -54,8 +54,8 @@ module Model = struct
 
   let update_current_word model =
     let get_word = match model.current_dir with
-      | `Across -> Xword.word_ac
-      | `Down -> Xword.word_dn
+      | `Across -> Xword.word_coords_ac
+      | `Down -> Xword.word_coords_dn
     in
     let c = get_word model.xw model.cursor.x model.cursor.y in
     let s = set_of_list c in
