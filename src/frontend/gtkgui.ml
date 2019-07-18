@@ -222,52 +222,43 @@ let make_cell_view ~column ~title ~opts =
   col
 
 
-(* Clues *)
-let cluebox_title (dir : word_direction) = match dir with
-  | `Across -> "Across"
-  | `Down -> "Down"
+let make_textview ~packing =
+  let font_name = "Monospace 10" in
+  let text = GText.view
+      ~editable:false
+      ~packing ~height:500 ~width:900
+      ()
+  in
+  text#misc#modify_font_by_name font_name;
+  text
 
-class clue_widget ~model ~dir ?packing ?show () =
-  let scrolled_win =
-    GBin.scrolled_window ?packing ?show ~width:200
-      ~hpolicy:`AUTOMATIC ~vpolicy:`AUTOMATIC ()
+
+class clues_text ~model ~packing () =
+  let scrolled_win = GBin.scrolled_window
+      ~hpolicy: `AUTOMATIC ~vpolicy: `AUTOMATIC
+      ~packing ()
   in
-  let cols = new GTree.column_list in
-  let column = cols#add Gobject.Data.string in
-  let list_model = GTree.list_store cols in
-  let title = cluebox_title dir in
-  let clue_col_view = make_cell_view ~column ~title
-      ~opts: [ `XALIGN 0.; `YPAD 1 ]
+  let text = make_textview ~packing:scrolled_win#add in
+
+  let format_clue (cl : working_clue) =
+    Printf.sprintf "  %d. %s" cl.number cl.initial_clue
   in
-  let view = GTree.view ~model:list_model ~packing:scrolled_win#add () in
+
+  let format_clues () =
+    let ac = "Across" :: "" :: CCList.map format_clue !model.clues_ac in
+    let dn = "Down" :: "" :: CCList.map format_clue !model.clues_dn in
+    CCString.unlines CCList.(ac @ [""] @ dn)
+  in
+
   object(self)
     inherit GObj.widget_full scrolled_win#as_widget
 
     initializer
-      self#update;
-      ignore @@ view#append_column clue_col_view;
-      ()
+      self#update
 
     method update =
-      let clues = Xword.get_clues !model.xw dir in
-      list_model#clear ();
-      List.iter ~f:(fun clue ->
-          let row = list_model#append () in
-          list_model#set ~row ~column clue)
-        (List.map ~f:Presenter.format_clue clues)
-  end
-
-
-class clues_widget ~model ?packing ?show () =
-  let vbox = GPack.vbox ?packing ?show () in
-  let ac = new clue_widget ~model ~dir:`Across ~packing:vbox#add ?show () in
-  let dn = new clue_widget ~model ~dir:`Down ~packing:vbox#add ?show () in
-  object(_)
-    inherit GObj.widget_full vbox#as_widget
-
-    method update =
-      ac#update;
-      dn#update
+      let clues = format_clues () in
+      text#buffer#set_text clues
   end
 
 
@@ -329,7 +320,7 @@ class xword_widget ?packing ?show ~model ~window () =
   let fr = GBin.frame ~packing:vpane#pack1
       ~border_width:3 ~shadow_type:`IN () in
   let grid = new grid_widget ~packing:fr#add ~model () in
-  let clues = new clues_widget ~packing:hpane#pack2 ~model () in
+  let clues = new clues_text ~packing:hpane#pack2 ~model () in
   let meta = new metadata_widget ~packing:vpane#pack2 ~model () in
   object(self)
     inherit GObj.widget_full hpane#as_widget
