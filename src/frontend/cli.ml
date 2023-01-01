@@ -68,7 +68,7 @@ let list_formats =
 
 let cmd =
   let doc = "Crossword file format converter" in
-  Term.(ret (const handle $ list_formats $ in_format $ out_format $ in_file $ out_file)),
-  Term.info "xwconvert" ~version:"0.1" ~doc
+  let info = Cmd.info "xwconvert" ~version:"0.3" ~doc in
+  Cmd.v info Term.(ret (const handle $ list_formats $ in_format $ out_format $ in_file $ out_file))
 
-let () = match Term.eval cmd with `Error _ -> exit 1 | _ -> exit 0
+let () = exit (Cmd.eval cmd)

@@ -1,6 +1,6 @@
 opam-version: "1.2"
 name: "crosspad"
-version: "0.2"
+version: "0.3"
 maintainer: "Martin DeMello <martindemello@gmail.com>"
 authors: [ "Martin DeMello <martindemello@gmail.com>" ]
 license: "MIT"

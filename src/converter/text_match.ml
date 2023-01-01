@@ -1,8 +1,8 @@
 open Angstrom
 
 let run_match p s =
-  match parse_string p s with
-  | Result.Ok x -> Some x
+  match parse_string ~consume:All p s with
+  | Ok x -> Some x
   | _ -> None
 
 module P = struct

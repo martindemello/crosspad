@@ -11,7 +11,7 @@ authors: ["Martin DeMello <martindemello@gmail.com>"]
 bug-reports: "https://github.com/martindemello/crosspad/issues"
 homepage: "https://github.com/martindemello/crosspad"
 license: "MIT"
-version: "0.2"
+version: "0.3"
 dev-repo: "git+https://github.com/martindemello/crosspad.git"
 synopsis:
   "Crossword grid manipulation library, file format converter and viewer"

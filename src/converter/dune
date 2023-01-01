@@ -3,7 +3,7 @@
   (libraries 
     angstrom
     bitstring
-    bitstring.ppx
+    ppx_bitstring
     containers
     xword)
- (preprocess (pps bitstring.ppx)))
+ (preprocess (pps ppx_bitstring)))

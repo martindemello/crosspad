@@ -1,7 +1,7 @@
 (lang dune 1.10)
 (generate_opam_files true)
 (name crosspad)
-(version "0.2")
+(version "0.3")
 (source (github martindemello/crosspad))
 (license MIT)
 (authors "Martin DeMello <martindemello@gmail.com>")

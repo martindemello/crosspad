@@ -8,6 +8,7 @@ bin: [
   "_build/install/default/bin/xwconvert"
 ]
 doc: [
+  "_build/install/default/doc/crosspad/CHANGELOG.md"
   "_build/install/default/doc/crosspad/LICENSE"
   "_build/install/default/doc/crosspad/README.md"
 ]
