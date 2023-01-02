@@ -52,6 +52,7 @@ class grid_widget ~model ?packing ?show () =
 
       ignore @@ da#misc#set_can_focus true;
       ignore @@ da#misc#grab_focus ();
+      self#misc#set_size_request ~height:400 ();
       ()
 
     method handle_button_press ev =
@@ -285,6 +286,7 @@ class metadata_widget ~model ?packing ?show () =
       self#update;
       ignore @@ view#append_column key_col_view;
       ignore @@ view#append_column val_col_view;
+      self#misc#set_size_request ~height:400 ();
       ()
 
     method update =
