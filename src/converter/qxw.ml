@@ -41,11 +41,35 @@ let read_sq line =
   (row, col, cell)
 
 
+let read_sqct line =
+  let ps = parts "SQCT " line |> CCArray.of_list in
+  let n = CCArray.length ps in
+  if n < 3 || n > 4 then begin
+    let err = "Error reading grid from qxw file: " ^ line in
+    raise (PuzzleFormatError err)
+  end;
+  let col = int_of_string ps.(0) in
+  let row = int_of_string ps.(1) in
+  let b = int_of_string ps.(2) in
+  let c = CCArray.get_safe ps 3 |> CCOption.map (CCString.replace ~sub:"\"" ~by:"") in
+  match b with
+  | 1 -> None
+  | _ -> (
+    let cell = match c with
+    | None -> Empty
+    | Some "." -> Black
+    | Some c -> Letter c
+    in
+    Some (row, col, cell)
+  )
+
+
 let read_cells xw lines =
-  let sq = lines_with_prefix "SQ " lines in
+  let sq = lines_with_prefix "SQCT " lines in
   List.iter sq ~f:(fun line ->
-      let row, col, cell = read_sq line in
-      Xword.set_cell xw row col cell)
+      match read_sqct line with
+      | None -> ()
+      | Some (row, col, cell) -> Xword.set_cell xw row col cell)
 
 
 let fill_clues xw =
